@@ -145,7 +145,39 @@ openGameWindowBtn.onclick=()=>{
   win.document.title="MicroConda — Jogo";
   win.document.head.innerHTML='<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MicroConda — Jogo</title><style>html,body{margin:0;width:100%;height:100%;background:#02050a;overflow:hidden}body{display:flex;align-items:center;justify-content:center}.game-popout{width:100vw;height:100vh;object-fit:contain;image-rendering:pixelated;background:#000;outline:none}</style>';
   win.document.body.replaceChildren(popupCanvas);
+  const forwardKeyboard = (event) => {
+    if(!window.opener || window.opener.closed)return;
+    const forwarded = new KeyboardEvent(event.type, {
+      key:event.key, code:event.code, location:event.location,
+      ctrlKey:event.ctrlKey, shiftKey:event.shiftKey,
+      altKey:event.altKey, metaKey:event.metaKey,
+      repeat:event.repeat, bubbles:true, cancelable:true
+    });
+    window.opener.document.getElementById("gameCanvas")?.dispatchEvent(forwarded);
+    event.preventDefault();
+  };
+  const forwardPointer = (event) => {
+    if(!window.opener || window.opener.closed)return;
+    const target=window.opener.document.getElementById("gameCanvas");
+    if(!target)return;
+    const rect=target.getBoundingClientRect();
+    const x=Math.max(0,Math.min(rect.width,event.clientX/window.innerWidth*rect.width));
+    const y=Math.max(0,Math.min(rect.height,event.clientY/window.innerHeight*rect.height));
+    const forwarded = new MouseEvent(event.type, {
+      clientX:rect.left+x, clientY:rect.top+y,
+      button:event.button, buttons:event.buttons,
+      bubbles:true, cancelable:true
+    });
+    target.dispatchEvent(forwarded);
+    event.preventDefault();
+  };
   popupCanvas.addEventListener("click",()=>popupCanvas.focus());
+  popupCanvas.addEventListener("keydown",forwardKeyboard);
+  popupCanvas.addEventListener("keyup",forwardKeyboard);
+  popupCanvas.addEventListener("mousedown",forwardPointer);
+  popupCanvas.addEventListener("mouseup",forwardPointer);
+  popupCanvas.addEventListener("mousemove",forwardPointer);
+  popupCanvas.addEventListener("wheel",forwardPointer,{passive:false});
   win.addEventListener("beforeunload",()=>{
     gamePopup=null;
     gameTargetCanvas=gameCanvas;
