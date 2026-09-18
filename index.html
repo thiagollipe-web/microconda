@@ -74,7 +74,7 @@ function sync(){project.files[current]=editor.value;saveProject();syncLines()}
 function syncLines(){const n=Math.max(1,editor.value.split("\n").length);lines.textContent=Array.from({length:n},(_,i)=>i+1).join("\n")}
 function write(t,k=""){const e=document.createElement("div");e.className=k;e.textContent=String(t);out.appendChild(e);while(out.childElementCount>500)out.firstElementChild?.remove();out.scrollTop=out.scrollHeight}
 function stat(t,ready=false){status.textContent=t;dot.classList.toggle("ready",ready)}
-function focusPreview(){try{previewFrame?.contentWindow?.focus()}catch(e){}}
+function focusPreview(){try{previewFrame?.contentWindow?.focus();previewFrame?.focus()}catch(e){}}
 function showView(which){const g=which==="game";terminalView.hidden=g;gameView.hidden=!g;terminalTab.classList.toggle("primary",!g);gameTab.classList.toggle("primary",g);if(g)focusPreview()}
 function renderFiles(){files.innerHTML="";Object.keys(project.files).sort().forEach(n=>{const e=document.createElement("div");e.className="file"+(n===current?" active":"");e.textContent=n;e.onclick=()=>open(n);files.appendChild(e)})}
 function open(n){current=n;name.textContent=n;editor.value=project.files[n]||"";syncLines();renderFiles();saveProject();editor.focus()}
@@ -111,10 +111,10 @@ function exportHtml(){
 }
 function newFile(){const n=prompt("Nome do arquivo:","script.js");if(!n)return;const name2=n.trim();if(!/^[^/\\\\]+\\.(html|css|js)$/i.test(name2))return alert("Use .html, .css ou .js");if(project.files[name2]!=null)return alert("Arquivo já existe.");project.files[name2]="";open(name2)}
 $("run").onclick=runPreview;$("clear").onclick=()=>out.textContent="";$("download").onclick=exportHtml;$("export").onclick=exportHtml;$("reset").onclick=()=>{stopGame();project={files:{"index.html":DEFAULT}};open("index.html");write("Projeto reiniciado.","ok")};
-$("new").onclick=newFile;gameBtn.onclick=runPreview;stopGameBtn.onclick=stopGame;terminalTab.onclick=()=>showView("terminal");gameTab.onclick=()=>showView("game");editor.oninput=sync;editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
+$("new").onclick=newFile;gameBtn.onclick=runPreview;stopGameBtn.onclick=stopGame;terminalTab.onclick=()=>showView("terminal");gameTab.onclick=()=>showView("game");openGameWindowBtn.onclick=()=>{sync();const url=new URL(location.href);url.searchParams.set("game","1");const w=window.open(url.href,"_blank","noopener,noreferrer");if(!w)write("O navegador bloqueou a nova janela. Permita pop-ups para abrir o jogo.","err")};editor.oninput=sync;editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
 editor.onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();const s=editor.selectionStart,en=editor.selectionEnd;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(en);editor.selectionStart=editor.selectionEnd=s+4;sync()}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();runPreview()}};
 cmd.onkeydown=async e=>{if(e.key==="ArrowUp"){e.preventDefault();if(hist.length){hi=Math.max(0,hi-1);cmd.value=hist[hi]||""}return}if(e.key==="ArrowDown"){e.preventDefault();if(hist.length){hi=Math.min(hist.length,hi+1);cmd.value=hist[hi]||""}return}if(e.key!=="Enter")return;const v=cmd.value.trim();cmd.value="";if(!v)return;hist.push(v);hi=hist.length;if(v==="clear"){out.textContent="";return}if(v==="files"){write(Object.keys(project.files).sort().join("\n"),"info");return}if(v==="salvar"){saveProject();write("Projeto salvo.","ok");return}if(v==="help"){write("Console JavaScript. Use files, clear, salvar ou escreva JavaScript.","info");return}try{const r=Function(v)();if(r!==undefined)write(r)}catch(e){write(e?.stack||String(e),"err")}};
 editor.value=project.files[current]||DEFAULT;renderFiles();syncLines();stat("Studio pronto",true);write("MicroConda Game Studio pronto.","ok");
 if(location.search.includes("game=1")){document.querySelector(".top")?.remove();document.querySelector(".workspace>aside")?.remove();document.querySelector(".editor-panel")?.remove();document.querySelector(".workspace")?.style.setProperty("display","flex");document.querySelector(".workspace")?.style.setProperty("padding","0");const p=document.querySelector(".term-panel");p.style.width="100%";p.style.height="100%";showView("game");runPreview()}
 })();
-</script></script></body></html>
+</script></body></html>
