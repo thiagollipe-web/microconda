@@ -31,7 +31,7 @@ button{border:1px solid var(--line);background:var(--p2);color:var(--tx);padding
 (()=>{"use strict";
 const $=id=>document.getElementById(id),editor=$("editor"),out=$("out"),lines=$("lines"),files=$("files"),name=$("name"),cmd=$("cmd"),status=$("status"),dot=$("dot"),terminalView=$("terminalView"),gameView=$("gameView"),terminalTab=$("terminalTab"),gameTab=$("gameTab"),gameStatus=$("gameStatus"),stopGameBtn=$("stopGame"),gameBtn=$("game"),openGameWindowBtn=$("openGameWindow");
 const KEY="microconda-game-studio-v1";
-const DEFAULT=\`<!doctype html>
+const DEFAULT=`<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -56,12 +56,15 @@ function frame(){
 frame();
 <\/script>
 </body>
-</html>\`;
+</html>`;
 let project=loadProject(),current="index.html",hist=[],hi=-1,gameRunning=false,previewFrame=null,saveTimer=null;
 function loadProject(){
   try{
-    const x=JSON.parse(localStorage.getItem(KEY)||"null");
-    if(x&&x.files&&typeof x.files==="object")return {files:x.files};
+    const raw=localStorage.getItem(KEY);
+    if(raw&&raw.length<=1000000){
+      const x=JSON.parse(raw);
+      if(x&&x.files&&typeof x.files==="object")return {files:x.files};
+    }
   }catch(e){}
   return {files:{"index.html":DEFAULT}};
 }
