@@ -1,130 +1,113 @@
-# Space Invaders ASCII — teste do MicroConda Studio
-# Controles: a = esquerda | d = direita | f = atirar | q = sair
-# Cada comando avança uma rodada. O jogo funciona no navegador via prompt().
-
-from js import prompt
-from random import choice
-from time import sleep
+# Space Invaders ASCII — modo navegador
+# Execute este arquivo uma vez.
+# Depois use no terminal: a = esquerda | d = direita | f = atirar | q = sair
 
 LARGURA = 31
-ALTURA = 16
-ALIEN_INICIAL = 9
+ALTURA = 14
 
-player_x = LARGURA // 2
-aliens = []
-for y in (2, 4, 6):
-    for x in range(3, LARGURA - 2, 4):
-        aliens.append([x, y])
+estado = {
+    "x": LARGURA // 2,
+    "aliens": [],
+    "tiros": [],
+    "score": 0,
+    "turno": 0,
+    "ativo": True
+}
 
-tiros = []
-score = 0
-turno = 0
+def iniciar():
+    estado["x"] = LARGURA // 2
+    estado["aliens"] = []
+    estado["tiros"] = []
+    estado["score"] = 0
+    estado["turno"] = 0
+    estado["ativo"] = True
+    for y in (1, 3, 5):
+        for x in range(3, LARGURA - 2, 4):
+            estado["aliens"].append([x, y])
 
-def limpar():
-    print("\n" * 4)
-
-def desenhar():
-    limpar()
+def quadro():
+    tela = [[" " for _ in range(LARGURA)] for _ in range(ALTURA)]
+    for x, y in estado["aliens"]:
+        if 0 <= x < LARGURA and 0 <= y < ALTURA:
+            tela[y][x] = "W"
+    for x, y in estado["tiros"]:
+        if 0 <= x < LARGURA and 0 <= y < ALTURA:
+            tela[y][x] = "|"
+    x = estado["x"]
+    tela[ALTURA - 2][max(0, x - 1)] = "/"
+    tela[ALTURA - 2][x] = "A"
+    tela[ALTURA - 2][min(LARGURA - 1, x + 1)] = "\"
+    print("\n" + "=" * LARGURA)
+    print("        SPACE INVADERS ASCII")
     print("=" * LARGURA)
-    print("        S P A C E  I N V A D E R S")
-    print("=" * LARGURA)
-    print(f"  SCORE: {score:04d}     ALIENS: {len(aliens):02d}")
+    print(f"SCORE: {estado['score']:04d}   INVASORES: {len(estado['aliens']):02d}")
     print("-" * LARGURA)
-
-    quadro = [[" " for _ in range(LARGURA)] for _ in range(ALTURA)]
-
-    for x, y in aliens:
-        if 0 <= y < ALTURA:
-            quadro[y][x] = "W"
-
-    for x, y in tiros:
-        if 0 <= y < ALTURA:
-            quadro[y][x] = "|"
-
-    quadro[ALTURA - 2][max(0, player_x - 1)] = "/"
-    quadro[ALTURA - 2][player_x] = "A"
-    quadro[ALTURA - 2][min(LARGURA - 1, player_x + 1)] = "\"
-
-    for row in quadro:
-        print("|" + "".join(row) + "|")
-
+    for linha in tela:
+        print("|" + "".join(linha) + "|")
     print("=" * LARGURA)
-    print(" A = ESQ   D = DIR   F = ATIRAR   Q = SAIR")
+    print("A esquerda | D direita | F atirar | Q sair")
 
-def mover_alienigenas():
-    global aliens
-    proximo = []
-    for x, y in aliens:
-        nx = x + (1 if turno % 4 < 2 else -1)
-        ny = y + (1 if turno % 6 == 0 else 0)
-        proximo.append([max(1, min(LARGURA - 2, nx)), ny])
-    aliens = proximo
-
-def atualizar_tiros():
-    global tiros, score, aliens
-    novos_tiros = []
-    atingidos = set()
-
-    for x, y in tiros:
+def mover_tiros():
+    novos = []
+    removidos = set()
+    for x, y in estado["tiros"]:
         ny = y - 1
-        alvo = None
-        for i, (ax, ay) in enumerate(aliens):
+        atingiu = None
+        for i, (ax, ay) in enumerate(estado["aliens"]):
             if ax == x and ay == ny:
-                alvo = i
+                atingiu = i
                 break
-
-        if alvo is not None:
-            atingidos.add(alvo)
-            score += 10
+        if atingiu is not None:
+            removidos.add(atingiu)
+            estado["score"] += 10
         elif ny >= 0:
-            novos_tiros.append([x, ny])
+            novos.append([x, ny])
+    estado["tiros"] = novos
+    if removidos:
+        estado["aliens"] = [a for i, a in enumerate(estado["aliens"]) if i not in removidos]
 
-    if atingidos:
-        aliens = [a for i, a in enumerate(aliens) if i not in atingidos]
+def mover_invasores():
+    passo = 1 if (estado["turno"] // 4) % 2 == 0 else -1
+    for alien in estado["aliens"]:
+        alien[0] += passo
+        alien[0] = max(1, min(LARGURA - 2, alien[0]))
+    if estado["turno"] % 8 == 0:
+        for alien in estado["aliens"]:
+            alien[1] += 1
 
-    tiros = novos_tiros
+def comando(tecla):
+    tecla = str(tecla).lower()[:1]
+    if tecla == "q":
+        estado["ativo"] = False
+        print("\nJOGO ENCERRADO.")
+        return
+    if not estado["ativo"]:
+        print("O jogo terminou. Execute o arquivo novamente para reiniciar.")
+        return
+    if tecla == "a":
+        estado["x"] = max(1, estado["x"] - 2)
+    elif tecla == "d":
+        estado["x"] = min(LARGURA - 2, estado["x"] + 2)
+    elif tecla == "f":
+        estado["tiros"].append([estado["x"], ALTURA - 3])
+    else:
+        print("Comando inválido. Use A, D, F ou Q.")
+        return
+    mover_tiros()
+    mover_invasores()
+    estado["turno"] += 1
+    if any(y >= ALTURA - 2 for _, y in estado["aliens"]):
+        estado["ativo"] = False
+        quadro()
+        print("\nGAME OVER — os invasores chegaram!")
+        return
+    if not estado["aliens"]:
+        estado["ativo"] = False
+        quadro()
+        print(f"\nVITÓRIA! Pontuação: {estado['score']}")
+        return
+    quadro()
 
-def jogar():
-    global player_x, tiros, turno
-
-    print("MICROCONDA • SPACE INVADERS ASCII")
-    print("Uma versão simples para testar o Python no navegador.")
-    print("Digite um comando e pressione Enter.")
-    print()
-
-    while True:
-        desenhar()
-
-        if not aliens:
-            print("\n*** VITÓRIA! Você eliminou todos os invasores. ***")
-            print(f"Pontuação final: {score}")
-            break
-
-        if any(y >= ALTURA - 2 for _, y in aliens):
-            print("\n*** GAME OVER! Os invasores chegaram! ***")
-            print(f"Pontuação final: {score}")
-            break
-
-        comando = prompt("Comando [A/D/F/Q]:")
-        if comando is None:
-            break
-
-        comando = str(comando).strip().lower()[:1]
-
-        if comando == "q":
-            print("\nJogo encerrado. Até a próxima, piloto!")
-            break
-        elif comando == "a":
-            player_x = max(1, player_x - 2)
-        elif comando == "d":
-            player_x = min(LARGURA - 2, player_x + 2)
-        elif comando == "f":
-            tiros.append([player_x, ALTURA - 3])
-        else:
-            print("Comando inválido.")
-
-        atualizar_tiros()
-        mover_alienigenas()
-        turno += 1
-
-jogar()
+iniciar()
+print("MicroConda: Space Invaders carregado.")
+quadro()
