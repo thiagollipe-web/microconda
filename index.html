@@ -90,7 +90,7 @@ function buildDocument(){
   const css=Object.entries(project.files).filter(([n])=>/\.css$/i.test(n)).map(([,v])=>v.trim()).filter(Boolean).join("\\n");
   const js=Object.entries(project.files).filter(([n])=>/\.js$/i.test(n)).map(([,v])=>v.trim()).filter(Boolean).join("\\n");
   if(css&&raw.includes("</head>"))raw=raw.replace("</head>","<style>\\n"+css+"\\n</style></head>");
-  if(js&&raw.includes("</body>"))raw=raw.replace("</body>","<script>\\n"+js.replace(/<\\/script/gi,"<\\\\/script")+"\\n<\/script></body>");
+  if(js&&raw.includes("</body>"))raw=raw.replace("</body>","<script>\\n"+js.replace(/<\/script/gi,"<\\/script")+"\\n<\/script></body>");
   return raw;
 }
 function runPreview(){
