@@ -11,6 +11,7 @@ estado = {
     "tiros": [],
     "score": 0,
     "turno": 0,
+    "direcao": 1,
     "ativo": True
 }
 
@@ -20,6 +21,7 @@ def iniciar():
     estado["tiros"] = []
     estado["score"] = 0
     estado["turno"] = 0
+    estado["direcao"] = 1
     estado["ativo"] = True
     for y in (1, 3, 5):
         for x in range(3, LARGURA - 2, 4):
@@ -34,9 +36,9 @@ def quadro():
         if 0 <= x < LARGURA and 0 <= y < ALTURA:
             tela[y][x] = "|"
     x = estado["x"]
-    tela[ALTURA - 2][max(0, x - 1)] = "/"
+    tela[ALTURA - 2][max(0, x - 1)] = "<"
     tela[ALTURA - 2][x] = "A"
-    tela[ALTURA - 2][min(LARGURA - 1, x + 1)] = "\"
+    tela[ALTURA - 2][min(LARGURA - 1, x + 1)] = ">"
     print("\n" + "=" * LARGURA)
     print("        SPACE INVADERS ASCII")
     print("=" * LARGURA)
@@ -67,13 +69,21 @@ def mover_tiros():
         estado["aliens"] = [a for i, a in enumerate(estado["aliens"]) if i not in removidos]
 
 def mover_invasores():
-    passo = 1 if (estado["turno"] // 4) % 2 == 0 else -1
-    for alien in estado["aliens"]:
-        alien[0] += passo
-        alien[0] = max(1, min(LARGURA - 2, alien[0]))
-    if estado["turno"] % 8 == 0:
+    if not estado["aliens"]:
+        return
+
+    esquerda = min(x for x, _ in estado["aliens"])
+    direita = max(x for x, _ in estado["aliens"])
+    proxima_esquerda = esquerda + estado["direcao"]
+    proxima_direita = direita + estado["direcao"]
+
+    if proxima_esquerda <= 1 or proxima_direita >= LARGURA - 2:
+        estado["direcao"] *= -1
         for alien in estado["aliens"]:
             alien[1] += 1
+
+    for alien in estado["aliens"]:
+        alien[0] += estado["direcao"]
 
 def comando(tecla):
     tecla = str(tecla).lower()[:1]
