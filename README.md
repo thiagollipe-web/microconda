@@ -1,23 +1,46 @@
-# Easy miniconda installer script
+# MicroConda Browser Python
 
-## miniconda-installer.sh
-Script meant to automate installation of Miniconda package. It can be used on linux desktops or doing unattended 
-server deployments.
+Um terminal/IDE Python que roda diretamente no navegador.
 
-The script downloads the package from https://repo.continuum.io/miniconda/, checks md5sum and then installs it in users
-home directory.
+## Como funciona
 
-This script installs 64bit Linux version (Linux-x86_64) of Miniconda. For anyone interested in a different version
-(32bit etc) could easily modify this script (variables "FILE" and "MD5_EXP"). In the future it could be possible to
-change this via command variable. 
+O arquivo `index.html` usa [Pyodide](https://pyodide.org/) para executar CPython compilado para WebAssembly. A versão estável usada nesta implementação é a 314.0.7, publicada pelo projeto Pyodide em setembro de 2026. O Pyodide permite executar Python e carregar pacotes compatíveis dentro do navegador. 
 
-If you feel that there are issues/bugs or that functionality could be improved, feel free to contribute.
+A interface inclui:
+- editor `main.py`;
+- execução com Ctrl+Enter;
+- terminal interativo;
+- histórico de comandos;
+- saída de `print()` e erros;
+- salvamento do código no navegador;
+- download do programa como `.py`;
+- instalação de pacotes compatíveis via `install("nome-do-pacote")`;
+- reset do ambiente Python.
 
-Usage:
-    bash miniconda-install.sh [-d] [-u] [-e]
-    
-    -d      Install Miniconda by overwriting existing miniconda installation if exists
-    -u      After install update all Miniconda packages to the latest versions
-    -e      Add Miniconda path to ~/.bashrc. This will make conda python default user's python version.
-    -h      Show this help info
+## Executar
+
+Abra o `index.html` em um servidor estático ou publique o repositório no GitHub Pages.
+
+Exemplos no terminal:
+
+```python
+print("Olá, mundo!")
+```
+
+```python
+import math
+print(math.sqrt(81))
+```
+
+Para instalar um pacote compatível:
+
+```python
+await install("numpy")
+import numpy as np
+print(np.arange(5))
+```
+
+## Importante
+
+O `miniconda-installer.sh` continua sendo um instalador Linux e não pode ser executado diretamente pelo navegador. O terminal web usa Pyodide/WebAssembly para fornecer Python dentro da página. Para executar um ambiente Conda/Miniconda real, com acesso ao sistema operacional e aos pacotes nativos do computador, é necessário um backend ou uma instalação local.
 
