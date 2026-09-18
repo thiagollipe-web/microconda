@@ -6,7 +6,7 @@
 
 # MicroConda
 
-**Um ambiente Python leve, educativo e instalável como PWA, direto no navegador.**
+**Um ambiente Python leve e educativo, direto no navegador.**
 
 [**Abrir MicroConda Studio**](https://thiagollipe-web.github.io/microconda/)
 
@@ -36,7 +36,6 @@ O projeto utiliza **Pyodide/WebAssembly** para executar Python no navegador e po
 - Instalação de pacotes Python compatíveis via micropip.
 - Exemplo de Space Invaders ASCII executado pelo terminal.
 - Interface responsiva para telas menores.
-- Manifesto e instalação como PWA.
 - Logo e identidade visual próprias.
 
 ## Como o projeto funciona
@@ -81,27 +80,25 @@ F = atirar
 Q = sair
 ```
 
-## PWA
+## Navegador e persistência
 
-O MicroConda possui manifest.webmanifest, ícone próprio, Service Worker, modo standalone e botão de instalação quando o navegador disponibiliza a instalação.
+O MicroConda roda no navegador com **Pyodide/WebAssembly** e salva o projeto em **LocalStorage** deste navegador.
 
-Em navegadores compatíveis, o aplicativo pode ser instalado na tela inicial do celular ou no desktop.
+O runtime Python depende do carregamento do Pyodide pela CDN oficial usada no projeto. Portanto, a aplicação não promete execução Python totalmente offline em uma nova sessão.
 
-> **Importante:** o shell do PWA possui cache local, mas o runtime Pyodide é carregado de uma CDN. Portanto, a instalação como PWA não significa que a execução de Python esteja totalmente offline em uma nova instalação.
 
 ## Testar
 
 Acesse: **https://thiagollipe-web.github.io/microconda/**
 
-No celular, abra no Chrome ou outro navegador compatível e utilize a opção **Instalar aplicativo** quando disponível.
+No celular, abra o endereço diretamente no navegador. A interface se adapta ao tamanho da tela.
 
 ## Estrutura principal
 
 ```text
 microconda/
 ├── index.html
-├── manifest.webmanifest
-├── sw.js
+├── sw.js              # limpeza de instalações/cache PWA legados
 ├── icons/
 │   └── microconda.svg
 ├── docs/
@@ -123,13 +120,11 @@ microconda/
 | JavaScript | IDE, terminal e integração |
 | Python | Linguagem executada |
 | Pyodide | Python via WebAssembly |
-| PWA | Instalação como aplicativo |
-| Service Worker | Cache do shell |
 | LocalStorage | Persistência local |
 
 ## Estado do projeto
 
-O projeto está em evolução, com foco em um Python Studio educacional e mobile-first.
+O projeto está em evolução, com foco em um Python Studio educacional e mobile-first. A instalação PWA e o botão de instalação foram removidos; o arquivo `sw.js` permanece apenas como rotina de limpeza para instalações antigas.
 
 ## Licença
 
