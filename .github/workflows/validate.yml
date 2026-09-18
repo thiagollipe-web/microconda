@@ -47,7 +47,7 @@ jobs:
           node <<'NODE'
           const fs=require("fs");
           const html=fs.readFileSync("index.html","utf8");
-          for(const marker of ["function buildDocument","function exportHtml","new Blob([doc]","a.download=base+".html"","<style>","<script>"]) {
+          for(const marker of ["function buildDocument","function exportHtml","new Blob([doc]","a.download=base+\".html\"","<style>","<script>"]) {
             if(!html.includes(marker)) throw new Error("Missing export marker: "+marker);
           }
           if(/\.zip|\.py|pyodide|pygame/i.test(html)) throw new Error("Legacy export/runtime reference detected");
