@@ -130,6 +130,11 @@ py.globals.set("install",async n=>{let p=String(n||"").trim();if(!/^[A-Za-z0-9._
 stat("Python pronto",true);write("MicroConda Studio pronto.","ok");write("Python "+py.runPython("import sys; sys.version.split()[0]")+" · WebAssembly","info");return py})().catch(e=>{loading=null;stat("Erro ao carregar Python");write(e.stack||e,"err");throw e});return loading}
 async function execute(code){
   if(!code.trim())return;
+  if(gameRunning){
+    write("Um jogo está em execução. Use ■ Parar antes de executar Python no terminal.","err");
+    showView("game");
+    return;
+  }
   sync();
   showView("terminal");
   write(">>> "+code,"info");
@@ -174,11 +179,18 @@ async function executeGame(code){
   }
 }
 function download(n,t){let a=document.createElement("a"),u=URL.createObjectURL(new Blob([t],{type:"text/plain;charset=utf-8"}));a.href=u;a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
-$("run").onclick=()=>execute(editor.value);$("clear").onclick=()=>out.textContent="";
+$("run").onclick=()=>looksLikePygame(editor.value)?executeGame(editor.value):execute(editor.value);$("clear").onclick=()=>out.textContent="";
 
 $("download").onclick=()=>{sync();download(current,editor.value)};
 $("export").onclick=()=>{sync();download("microconda-project.json",JSON.stringify(project,null,2));write("Projeto exportado.","ok")};
-$("reset").onclick=async()=>{py=null;loading=null;out.textContent="";await init()};
+$("reset").onclick=async()=>{
+  if(gameRunning){
+    write("Pare o jogo atual antes de reiniciar o Python.","err");
+    showView("game");
+    return;
+  }
+  py=null;loading=null;pygameReady=false;out.textContent="";await init();
+};
 $("new").onclick=()=>{let n=prompt("Nome do arquivo:","novo.py");if(!n)return;n=n.trim();if(!/^[-\\w. ]+\.py$/i.test(n))return alert("Use um nome terminado em .py");if(n in project.files)return alert("Arquivo já existe.");project.files[n]="";open(n)};
 editor.oninput=sync;editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
 editor.onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();let s=editor.selectionStart,en=editor.selectionEnd;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(en);editor.selectionStart=editor.selectionEnd=s+4;sync()}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();execute(editor.value)}};
