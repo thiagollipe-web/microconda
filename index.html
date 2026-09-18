@@ -77,13 +77,22 @@ function write(t,k=""){
   out.scrollTop=out.scrollHeight;
 }
 function stat(t,ready=false){status.textContent=t;dot.classList.toggle("ready",ready)}
+function focusGameCanvas(){
+  const target=gameTargetCanvas?.isConnected?gameTargetCanvas:gameCanvas;
+  if(!target)return;
+  target.tabIndex=0;
+  try{target.focus({preventScroll:true})}catch(e){target.focus()}
+  requestAnimationFrame(()=>{
+    try{target.focus({preventScroll:true})}catch(e){target.focus()}
+  });
+}
 function showView(which){
   const isGame=which==="game";
   terminalView.hidden=isGame;
   gameView.hidden=!isGame;
   terminalTab.classList.toggle("primary",!isGame);
   gameTab.classList.toggle("primary",isGame);
-  if(isGame)(gameTargetCanvas?.isConnected?gameTargetCanvas:gameCanvas).focus();
+  if(isGame)focusGameCanvas();
 }
 function looksLikePygame(code){return /(^|\n)\s*(?:import\s+pygame\b|from\s+pygame\b)/m.test(code)}
 async function prepareGameCanvas(engine){
@@ -116,7 +125,7 @@ stopGameBtn.onclick=stopGame;
 gameBtn.onclick=()=>executeGame(editor.value);
 terminalTab.onclick=()=>showView("terminal");
 gameTab.onclick=()=>showView("game");
-gameCanvas.onclick=()=>gameCanvas.focus();
+gameCanvas.addEventListener("pointerdown",focusGameCanvas);\ngameCanvas.addEventListener("touchstart",focusGameCanvas,{passive:true});\ngameCanvas.onclick=focusGameCanvas;
 
 function closeGamePopup(){
   if(gamePopupFrame)cancelAnimationFrame(gamePopupFrame);
@@ -172,7 +181,7 @@ openGameWindowBtn.onclick=()=>{
     target.dispatchEvent(forwarded);
     event.preventDefault();
   };
-  popupCanvas.addEventListener("click",()=>popupCanvas.focus());
+  const focusPopup=()=>{try{popupCanvas.focus({preventScroll:true})}catch(e){popupCanvas.focus()}};\n  popupCanvas.addEventListener("pointerdown",focusPopup);\n  popupCanvas.addEventListener("touchstart",focusPopup,{passive:true});\n  popupCanvas.addEventListener("click",focusPopup);
   popupCanvas.addEventListener("keydown",forwardKeyboard);
   popupCanvas.addEventListener("keyup",forwardKeyboard);
   popupCanvas.addEventListener("mousedown",forwardPointer);
