@@ -60,7 +60,7 @@ $("new").onclick=()=>{let n=prompt("Nome do arquivo:","novo.py");if(!n)return;n=
 editor.oninput=sync;editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
 editor.onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();let s=editor.selectionStart,en=editor.selectionEnd;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(en);editor.selectionStart=editor.selectionEnd=s+4;sync()}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();execute(editor.value)}};
 cmd.onkeydown=async e=>{if(e.key==="ArrowUp"){e.preventDefault();if(hist.length){hi=Math.max(0,hi-1);cmd.value=hist[hi]||""}return}if(e.key==="ArrowDown"){e.preventDefault();if(hist.length){hi=Math.min(hist.length,hi+1);cmd.value=hist[hi]||""}return}if(e.key!=="Enter")return;let v=cmd.value.trim();cmd.value="";if(!v)return;hist.push(v);hi=hist.length;
-if(v==="clear"){out.textContent="";return}if(v==="help"){write("Python no navegador. Comandos: help, clear, version, files, load("arquivo.py").","info");return}if(v==="files"){write(Object.keys(project.files).sort().join("\n"),"info");return}
+if(v==="clear"){out.textContent="";return}if(v==="help"){write("Python no navegador. Comandos: help, clear, version, files, load(\"arquivo.py\").","info");return}if(v==="files"){write(Object.keys(project.files).sort().join("\n"),"info");return}
 let m=v.match(/^load\(["'](.+)["']\)$/);if(m){if(m[1] in project.files){open(m[1]);write("Arquivo carregado: "+m[1],"ok")}else write("Arquivo não encontrado: "+m[1],"err");return}
 if(v==="version"){try{await init();write(py.runPython("import sys; sys.version"),"info")}catch(e){}return}await execute(v)};
 editor.value=project.files[current]||DEFAULT;renderFiles();renderDemos();syncLines();init();
