@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#070b14">
-<link rel="manifest" href="./manifest.webmanifest">\n<link rel="icon" href="./icons/microconda.svg" type="image/svg+xml">\n<link rel="apple-touch-icon" href="./icons/microconda.svg">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/microconda.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/microconda.svg">
 <title>MicroConda Studio</title>
 <style>
 :root{--bg:#070b14;--p:#0d1424;--p2:#111a2d;--line:#22304a;--tx:#e8eef8;--muted:#8ea0ba;--a:#62d7ff;--ok:#6ee7a2;--bad:#ff7182}
 *{box-sizing:border-box}body{margin:0;height:100vh;overflow:hidden;background:radial-gradient(circle at top,#15213a,#070b14 55%);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,sans-serif}.app{height:100%;display:flex;flex-direction:column}
-.top{min-height:62px;padding:10px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);background:#070b14e8}.logo{font-weight:850}.logo span{color:var(--a)}.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}.dot{width:9px;height:9px;border-radius:50%;background:#ffd166}.dot.ready{background:var(--ok)}.actions{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.top{min-height:62px;padding:10px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);background:#070b14e8}.brand{display:flex;align-items:center;gap:9px}.brand-logo{width:38px;height:38px;border-radius:9px;display:block}.logo{font-weight:850}.logo span{color:var(--a)}.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}.dot{width:9px;height:9px;border-radius:50%;background:#ffd166}.dot.ready{background:var(--ok)}.actions{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
 button{border:1px solid var(--line);background:var(--p2);color:var(--tx);padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:650}button:hover{border-color:#3a557d}button.primary{background:#12374a;border-color:#2c7f9e}button.danger{color:#ffb1bc}
 .workspace{min-height:0;flex:1;display:grid;grid-template-columns:190px minmax(0,1fr) minmax(320px,.68fr);gap:10px;padding:10px}.panel{min-height:0;border:1px solid var(--line);background:#0d1424e8;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}.bar{height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line);color:var(--muted);font-size:12px}.bar strong{color:var(--tx)}.spacer{margin-left:auto}
 .side{overflow:auto;padding:8px}.sect{padding:7px;color:#6f83a3;font-size:10px;text-transform:uppercase;letter-spacing:.12em}.file,.example{padding:8px;border-radius:7px;cursor:pointer;font-size:12px}.file{font-family:ui-monospace,Consolas,monospace}.file:hover,.file.active,.example:hover{background:#15233a}.example{margin:3px 0;border:1px solid var(--line);background:#0e1829}
@@ -18,7 +20,7 @@ button{border:1px solid var(--line);background:var(--p2);color:var(--tx);padding
 </style>
 </head>
 <body><div class="app">
-<header class="top"><div class="logo">Micro<span>Conda</span> Studio</div><div class="status"><i id="dot" class="dot"></i><span id="status">Inicializando Python…</span></div>
+<header class="top"><div class="brand"><img class="brand-logo" src="./icons/microconda.svg" alt="Logo MicroConda"><div class="logo">Micro<span>Conda</span> Studio</div></div><div class="status"><i id="dot" class="dot"></i><span id="status">Inicializando Python…</span></div>
 <div class="actions"><button id="new">＋ Novo</button><button id="run" class="primary">▶ Executar</button><button id="clear">Limpar terminal</button><button id="download">Baixar .py</button><button id="export">Exportar projeto</button><button id="install" class="primary" hidden>Instalar PWA</button><button id="reset" class="danger">Reset</button></div></header>
 <main class="workspace">
 <aside class="panel"><div class="bar"><strong>Projeto</strong><span class="spacer">Local</span></div><div id="files" class="side"></div><div class="bar"><strong>Exemplos</strong></div><div id="examples" class="side"></div></aside>
