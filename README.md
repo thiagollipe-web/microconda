@@ -107,7 +107,10 @@ microconda/
 │       ├── microconda-studio-mobile.svg
 │       └── space-invaders-ascii.svg
 ├── space_invaders_ascii.py
-├── miniconda-installer.sh
+├── .github/
+│   └── workflows/
+│       └── validate.yml
+├── sw.js              # limpeza de instalações/cache PWA legados
 └── LICENSE
 ```
 
