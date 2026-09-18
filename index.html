@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#070b14">
 <link rel="icon" href="./icons/microconda.svg" type="image/svg+xml">
-<title>MicroConda Studio</title>
+<title>MicroConda Game Studio</title>
 <style>
 :root{--bg:#070b14;--p:#0d1424;--p2:#111a2d;--line:#22304a;--tx:#e8eef8;--muted:#8ea0ba;--a:#62d7ff;--ok:#6ee7a2;--bad:#ff7182}
 *{box-sizing:border-box}body{margin:0;height:100vh;overflow:hidden;background:radial-gradient(circle at top,#15213a,#070b14 55%);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,sans-serif}.app{height:100%;display:flex;flex-direction:column}
@@ -18,294 +18,97 @@ button{border:1px solid var(--line);background:var(--p2);color:var(--tx);padding
 </style>
 </head>
 <body><div class="app">
-<header class="top"><div class="brand"><img class="brand-logo" src="./icons/microconda.svg" alt="Logo MicroConda"><div class="logo">Micro<span>Conda</span> Studio</div></div><div class="status"><i id="dot" class="dot"></i><span id="status">Inicializando Python…</span></div>
-<div class="actions"><button id="new">＋ Novo</button><button id="run" class="primary">▶ Executar</button><button id="game" class="game">🎮 Executar jogo</button><button id="clear">Limpar terminal</button><button id="download">Baixar .py</button><button id="export">Exportar projeto</button><button id="reset" class="danger">Reset</button></div></header>
+<header class="top"><div class="brand"><img class="brand-logo" src="./icons/microconda.svg" alt="Logo MicroConda"><div class="logo">Micro<span>Conda</span> Game Studio</div></div><div class="status"><i id="dot" class="dot"></i><span id="status">Inicializando Python…</span></div>
+<div class="actions"><button id="new">＋ Novo</button><button id="run" class="primary">▶ Executar</button><button id="game" class="game">🎮 Executar jogo</button><button id="clear">Limpar console</button><button id="download">Baixar HTML</button><button id="export">Exportar jogo</button><button id="reset" class="danger">Reset</button></div></header>
 <main class="workspace">
 <aside class="panel"><div class="bar"><strong>Projeto</strong><span class="spacer">Local</span></div><div id="files" class="side"></div></aside>
-<section class="panel editor-panel"><div class="bar"><strong id="name">main.py</strong><span>Editor Python</span><span class="spacer">Ctrl+Enter · Tab</span></div><div class="editor-wrap"><div id="lines" class="lines">1</div><textarea id="editor" class="editor" spellcheck="false" aria-label="Editor Python"></textarea></div></section>
+<section class="panel editor-panel"><div class="bar"><strong id="name">index.html</strong><span>Editor HTML · CSS · JavaScript</span><span class="spacer">Ctrl+Enter · Tab</span></div><div class="editor-wrap"><div id="lines" class="lines">1</div><textarea id="editor" class="editor" spellcheck="false" aria-label="Editor Python"></textarea></div></section>
 <section class="panel term-panel">
 <div class="bar"><div class="view-tabs"><button id="terminalTab" class="mini primary">Terminal</button><button id="gameTab" class="mini">🎮 Jogo</button></div><span>MicroConda</span></div>
-<div id="terminalView" style="min-height:0;flex:1;display:flex;flex-direction:column"><div id="out" class="output" aria-live="polite"></div><div class="entry"><span class="prompt">&gt;&gt;&gt;</span><input id="cmd" class="cmd" autocomplete="off" placeholder="Python, help, clear, files"></div><div class="hint">help · clear · version · files · load("arquivo.py") · await install("numpy")</div></div>
-<div id="gameView" class="game-view" hidden><div class="game-toolbar"><button id="openGameWindow" class="primary mini">↗ Abrir jogo em janela</button><span id="gameStatus" class="game-status">Jogo parado</span><span class="spacer"></span><button id="stopGame" class="danger mini">■ Parar</button></div><div class="canvas-wrap"><canvas id="gameCanvas" class="game-canvas" width="640" height="480" tabindex="0" aria-label="Tela do jogo"></canvas></div><div class="game-help">Clique na tela para dar foco ao jogo · use um loop assíncrono para animações contínuas.</div></div>
+<div id="terminalView" style="min-height:0;flex:1;display:flex;flex-direction:column"><div id="out" class="output" aria-live="polite"></div><div class="entry"><span class="prompt">&gt;</span><input id="cmd" class="cmd" autocomplete="off" placeholder="Console JavaScript"></div><div class="hint">console.log · clear · files · salvar</div></div>
+<div id="gameView" class="game-view" hidden><div class="game-toolbar"><button id="openGameWindow" class="primary mini">↗ Abrir jogo em janela</button><span id="gameStatus" class="game-status">Jogo parado</span><span class="spacer"></span><button id="stopGame" class="danger mini">■ Parar</button></div><div class="canvas-wrap"></div><div class="game-help">Toque na tela para interagir com o jogo.</div></div>
 </section>
-</main><div class="footer">MicroConda Studio · Python no navegador com Pyodide/WebAssembly · projeto salvo localmente neste navegador</div></div>
-<script src="https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.js"></script>
+</main><div class="footer">MicroConda Studio · HTML · CSS · JavaScript · Canvas · projeto salvo localmente neste navegador</div></div>
 <script>
 (()=>{"use strict";
 const $=id=>document.getElementById(id),editor=$("editor"),out=$("out"),lines=$("lines"),files=$("files"),name=$("name"),cmd=$("cmd"),status=$("status"),dot=$("dot"),terminalView=$("terminalView"),gameView=$("gameView"),terminalTab=$("terminalTab"),gameTab=$("gameTab"),gameCanvas=$("gameCanvas"),gameStatus=$("gameStatus"),stopGameBtn=$("stopGame"),gameBtn=$("game"),openGameWindowBtn=$("openGameWindow");
-const KEY="microconda-studio-project-v2";
-const DEFAULT='print("Olá, MicroConda!")\n\nfor i in range(5):\n    print("Contagem:", i)\n\nprint("2 + 3 =", 2 + 3)';
-let project=load(),current="main.py",py=null,loading=null,hist=[],hi=-1,gameRunning=false,pygameReady=false;
-let gameTargetCanvas=gameCanvas;
-let gamePopup=null;
-let gamePopupFrame=0;
-function load(){
+const KEY="microconda-game-studio-v1";
+const DEFAULT=\`<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
+body{display:flex;align-items:center;justify-content:center}
+canvas{width:100vw;height:100vh;object-fit:contain;display:block;touch-action:none;background:#000}
+</style>
+</head>
+<body>
+<canvas id="game" width="320" height="180"></canvas>
+<script>
+const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");
+let x=160, y=90, vx=2.2;
+function frame(){
+  ctx.fillStyle="#07111f";ctx.fillRect(0,0,320,180);
+  ctx.fillStyle="#4fd1ff";ctx.fillRect(x-10,y-10,20,20);
+  x+=vx;if(x>310||x<10)vx*=-1;
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
+</body>
+</html>\`;
+let project=loadProject(),current="index.html",hist=[],hi=-1,gameRunning=false,previewFrame=null;
+function loadProject(){
   try{
     const x=JSON.parse(localStorage.getItem(KEY)||"null");
-    if(x&&x.files&&typeof x.files==="object"&&!Array.isArray(x.files)){
-      const safe={};
-      for(const [n,v] of Object.entries(x.files)){
-        if(/^[^/\\]+\.py$/i.test(n)&&typeof v==="string")safe[n]=v;
-      }
-      if(Object.keys(safe).length)return{files:safe};
-    }
+    if(x&&x.files&&typeof x.files==="object")return {files:x.files};
   }catch(e){}
-  return{files:{"main.py":DEFAULT}};
+  return {files:{"index.html":DEFAULT}};
 }
-let storageWarningShown=false;
 function saveProject(){
-  try{
-    localStorage.setItem(KEY,JSON.stringify(project));
-    return true;
-  }catch(e){
-    if(!storageWarningShown){
-      storageWarningShown=true;
-      write("Não foi possível salvar o projeto no navegador. O código continua editável, mas pode não persistir.","err");
-    }
-    return false;
-  }
+  try{localStorage.setItem(KEY,JSON.stringify(project));return true}
+  catch(e){write("Não foi possível salvar no navegador.","err");return false}
 }
 function sync(){project.files[current]=editor.value;saveProject();syncLines()}
-function syncLines(){let n=Math.max(1,editor.value.split("\n").length);lines.textContent=Array.from({length:n},(_,i)=>i+1).join("\n")}
-const MAX_OUTPUT_ENTRIES=500;
-function write(t,k=""){
-  const e=document.createElement("div");
-  e.className=k;
-  e.textContent=String(t);
-  out.appendChild(e);
-  while(out.childElementCount>MAX_OUTPUT_ENTRIES)out.firstElementChild?.remove();
-  out.scrollTop=out.scrollHeight;
-}
+function syncLines(){const n=Math.max(1,editor.value.split("\n").length);lines.textContent=Array.from({length:n},(_,i)=>i+1).join("\n")}
+function write(t,k=""){const e=document.createElement("div");e.className=k;e.textContent=String(t);out.appendChild(e);while(out.childElementCount>500)out.firstElementChild?.remove();out.scrollTop=out.scrollHeight}
 function stat(t,ready=false){status.textContent=t;dot.classList.toggle("ready",ready)}
-function focusGameCanvas(){
-  const target=gameTargetCanvas?.isConnected?gameTargetCanvas:gameCanvas;
-  if(!target)return;
-  target.tabIndex=0;
-  try{target.focus({preventScroll:true})}catch(e){target.focus()}
-  requestAnimationFrame(()=>{
-    try{target.focus({preventScroll:true})}catch(e){target.focus()}
-  });
+function focusGameCanvas(){const t=gameCanvas;if(!t)return;t.tabIndex=0;try{t.focus({preventScroll:true})}catch(e){t.focus()}requestAnimationFrame(()=>{try{t.focus({preventScroll:true})}catch(e){t.focus()}})}
+function showView(which){const g=which==="game";terminalView.hidden=g;gameView.hidden=!g;terminalTab.classList.toggle("primary",!g);gameTab.classList.toggle("primary",g);if(g)focusGameCanvas()}
+function renderFiles(){files.innerHTML="";Object.keys(project.files).sort().forEach(n=>{const e=document.createElement("div");e.className="file"+(n===current?" active":"");e.textContent=n;e.onclick=()=>open(n);files.appendChild(e)})}
+function open(n){current=n;name.textContent=n;editor.value=project.files[n]||"";syncLines();renderFiles();saveProject();editor.focus()}
+function buildDocument(){
+  const raw=editor.value.trim();
+  if(!raw)return "<!doctype html><html><body></body></html>";
+  if(/<html[\\s>]/i.test(raw))return raw;
+  if(/<style[\\s>]/i.test(raw)||/<script[\\s>]/i.test(raw))return "<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no\"></head><body>"+raw+"</body></html>";
+  return "<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no\"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden}body{display:flex;align-items:center;justify-content:center}canvas{max-width:100vw;max-height:100vh;display:block;touch-action:none}</style></head><body><canvas id=\"game\" width=\"320\" height=\"180\"></canvas><script>"+raw.replace(/<\\/script/gi,"<\\\\/script")+"<\\/script></body></html>";
 }
-function showView(which){
-  const isGame=which==="game";
-  terminalView.hidden=isGame;
-  gameView.hidden=!isGame;
-  terminalTab.classList.toggle("primary",!isGame);
-  gameTab.classList.toggle("primary",isGame);
-  if(isGame)focusGameCanvas();
+function runPreview(){
+  sync();showView("game");gameStatus.textContent="Executando…";gameRunning=true;
+  const doc=buildDocument();
+  const old=gameView.querySelector("iframe.preview-frame");if(old)old.remove();
+  const iframe=document.createElement("iframe");iframe.className="preview-frame";iframe.setAttribute("sandbox","allow-scripts allow-pointer-lock");iframe.setAttribute("title","Pré-visualização do jogo");
+  iframe.style.cssText="width:100%;height:100%;border:0;background:#000;display:block;";
+  const wrap=gameView.querySelector(".canvas-wrap");wrap.replaceChildren(iframe);
+  previewFrame=iframe;
+  iframe.srcdoc=doc;
+  iframe.onload=()=>{gameStatus.textContent="Jogo em execução";try{iframe.contentWindow.focus()}catch(e){}};
+  iframe.onerror=()=>{gameStatus.textContent="Erro no jogo";write("Não foi possível carregar a pré-visualização.","err")};
 }
-function looksLikePygame(code){return /(^|\n)\s*(?:import\s+pygame\b|from\s+pygame\b)/m.test(code)}
-async function prepareGameCanvas(engine){
-  if(!engine?.canvas?.setCanvas2D)throw new Error("Pyodide não expõe a API de canvas necessária para jogos SDL/Pygame.");
-  const target=gameTargetCanvas?.isConnected?gameTargetCanvas:gameCanvas;
-  gameTargetCanvas=target;
-  engine.canvas.setCanvas2D(target);
-  target.focus();
+function stopGame(){if(!gameRunning)return;gameRunning=false;gameStatus.textContent="Jogo parado";const iframe=previewFrame;if(iframe){iframe.srcdoc="<!doctype html><html><body style='margin:0;background:#000'></body></html>"}}
+function sanitizeName(n){return n.trim().replace(/[^a-zA-Z0-9À-ÿ _-]+/g,"").replace(/\\s+/g,"-").replace(/-+/g,"-")||"meu-jogo"}
+function exportHtml(){
+  sync();const base=sanitizeName(name.textContent.replace(/\\.html$/i,""));const blob=new Blob([buildDocument()],{type:"text/html;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=base+".html";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);write("Jogo exportado como arquivo HTML único: "+base+".html","ok")
 }
-async function ensurePygame(engine){
-  if(pygameReady){await prepareGameCanvas(engine);return;}
-  gameStatus.textContent="Carregando Pygame…";
-  await engine.loadPackage(["pygame-ce"]);
-  await prepareGameCanvas(engine);
-  pygameReady=true;
-  gameStatus.textContent="Pygame pronto";
-  write("pygame-ce carregado no canvas do jogo.","ok");
-}
-function gamePrelude(){
-  return `import pygame
-`;
-}
-function stopGame(){
-  if(!gameRunning)return;
-  try{py?.globals?.set("__microconda_stop",true)}catch(e){}
-  gameStatus.textContent="Solicitada a parada";
-  write("Parada solicitada. O jogo deve tratar pygame.QUIT no próximo ciclo.","info");
-}
-stopGameBtn.onclick=stopGame;
-gameBtn.onclick=()=>executeGame(editor.value);
-terminalTab.onclick=()=>showView("terminal");
-gameTab.onclick=()=>showView("game");
-gameCanvas.addEventListener("pointerdown",focusGameCanvas);\ngameCanvas.addEventListener("touchstart",focusGameCanvas,{passive:true});\ngameCanvas.onclick=focusGameCanvas;
-
-function closeGamePopup(){
-  if(gamePopupFrame)cancelAnimationFrame(gamePopupFrame);
-  gamePopupFrame=0;
-  if(gamePopup&&!gamePopup.closed)gamePopup.close();
-  gamePopup=null;
-  if(gameRunning)stopGame();
-  gameTargetCanvas=gameCanvas;
-}
-openGameWindowBtn.onclick=()=>{
-  if(gameRunning){
-    write("Pare o jogo atual antes de abrir outra guia.","err");
-    return;
-  }
-  const code=editor.value;
-  if(!code.trim()){
-    write("Não há código para executar.","err");
-    return;
-  }
-  try{
-    localStorage.setItem("microconda-pending-game",code);
-    const url=new URL(location.href);
-    url.searchParams.set("game","1");
-    const win=window.open(url.href,"_blank");
-    if(!win){
-      write("O navegador bloqueou a nova guia. Permita pop-ups para o MicroConda.","err");
-      return;
-    }
-    write("Nova guia do jogo aberta. O código atual será executado nela.","ok");
-  }catch(e){
-    write("Não foi possível abrir a guia do jogo: "+(e?.message||e),"err");
-  }
-};
-gameCanvas.onkeydown=e=>{if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault()};
-function renderFiles(){files.innerHTML="";Object.keys(project.files).sort().forEach(n=>{let e=document.createElement("div");e.className="file"+(n===current?" active":"");e.textContent="🐍 "+n;e.onclick=()=>open(n);files.appendChild(e)})}
-function open(n){if(!(n in project.files))project.files[n]="";current=n;name.textContent=n;editor.value=project.files[n];syncLines();renderFiles();saveProject();editor.focus()}
-async function init(){if(loading)return loading;loading=(async()=>{stat("Carregando Python…");py=await loadPyodide();py.setStdout({batched:s=>write(s)});py.setStderr({batched:s=>write(s,"err")});
-py.globals.set("install",async n=>{let p=String(n||"").trim();if(!/^[A-Za-z0-9._-]+$/.test(p))throw Error("Nome de pacote inválido.");if(p.toLowerCase()==="pygame"||p.toLowerCase()==="pygame-ce"){await ensurePygame(py);return}write("Instalando: "+p,"info");await py.loadPackage(["micropip"]);await py.runPythonAsync("import micropip; await micropip.install("+JSON.stringify(p)+")");write("Instalado: "+p,"ok")});
-stat("Python pronto",true);write("MicroConda Studio pronto.","ok");write("Python "+py.runPython("import sys; sys.version.split()[0]")+" · WebAssembly","info");return py})().catch(e=>{loading=null;stat("Erro ao carregar Python");write(e.stack||e,"err");throw e});return loading}
-async function execute(code){
-  if(!code.trim())return;
-  if(gameRunning){
-    write("Um jogo está em execução. Use ■ Parar antes de executar Python no terminal.","err");
-    showView("game");
-    return;
-  }
-  sync();
-  showView("terminal");
-  write(">>> "+code,"info");
-  try{
-    const engine=await init();
-    const r=await engine.runPythonAsync(code);
-    if(r!==undefined&&r!==null)write(typeof r==="string"?r:String(r));
-  }catch(e){
-    write(e?.stack||String(e),"err");
-  }
-}
-async function executeGame(code){
-  if(!code.trim())return;
-  if(gameRunning){
-    write("Já existe um jogo em execução. Pare o jogo atual antes de executar outro.","err");
-    showView("game");
-    return;
-  }
-  sync();
-  showView("game");
-  gameRunning=true;
-  gameStatus.textContent="Preparando jogo…";
-  try{
-    const engine=await init();
-    engine.globals.set("__microconda_stop",false);
-    const isPygame=looksLikePygame(code);
-    if(isPygame)await ensurePygame(engine);
-    else write("Modo gráfico genérico: use uma biblioteca compatível com Pyodide/canvas.","info");
-    write("Jogo iniciado no canvas.","info");
-    if(isPygame && /while\s+True/.test(code) && !/await\s+asyncio\.sleep\s*\(/.test(code)){
-      write("Atenção: loop infinito sem await asyncio.sleep(...) pode bloquear o navegador. Em Pygame para web, o loop deve ceder o controle ao browser.","err");
-    }
-    let gameSource=code;
-    if(isPygame){
-      gameSource=gamePrelude()+"\n"+code.replace(
-        /pygame\.event\.get\(\)/g,
-        '(list(pygame.event.get()) + ([pygame.event.Event(pygame.QUIT)] if globals().get("__microconda_stop", False) else []))'
-      );
-    }
-    const source=gameSource;
-    await engine.runPythonAsync(source);
-    gameStatus.textContent="Jogo encerrado";
-  }catch(e){
-    gameStatus.textContent="Erro no jogo";
-    write(e?.stack||String(e),"err");
-  }finally{
-    gameRunning=false;
-    try{py?.globals?.set("__microconda_stop",false)}catch(e){}
-  }
-}
-function download(n,t){let a=document.createElement("a"),u=URL.createObjectURL(new Blob([t],{type:"text/plain;charset=utf-8"}));a.href=u;a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
-$("run").onclick=()=>looksLikePygame(editor.value)?executeGame(editor.value):execute(editor.value);$("clear").onclick=()=>out.textContent="";
-
-$("download").onclick=()=>{sync();download(current,editor.value)};
-$("export").onclick=()=>{sync();download("microconda-project.json",JSON.stringify(project,null,2));write("Projeto exportado.","ok")};
-$("reset").onclick=async()=>{
-  if(gameRunning){
-    write("Pare o jogo atual antes de reiniciar o Python.","err");
-    showView("game");
-    return;
-  }
-  closeGamePopup();
-  py=null;loading=null;pygameReady=false;gameTargetCanvas=gameCanvas;out.textContent="";await init();
-};
-$("new").onclick=()=>{let n=prompt("Nome do arquivo:","novo.py");if(!n)return;n=n.trim();if(!/^[-\\w. ]+\.py$/i.test(n))return alert("Use um nome terminado em .py");if(n in project.files)return alert("Arquivo já existe.");project.files[n]="";open(n)};
-editor.oninput=sync;editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
-editor.onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();let s=editor.selectionStart,en=editor.selectionEnd;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(en);editor.selectionStart=editor.selectionEnd=s+4;sync()}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();execute(editor.value)}};
-cmd.onkeydown=async e=>{if(e.key==="ArrowUp"){e.preventDefault();if(hist.length){hi=Math.max(0,hi-1);cmd.value=hist[hi]||""}return}if(e.key==="ArrowDown"){e.preventDefault();if(hist.length){hi=Math.min(hist.length,hi+1);cmd.value=hist[hi]||""}return}if(e.key!=="Enter")return;let v=cmd.value.trim();cmd.value="";if(!v)return;
-hist.push(v);
-if(hist.length>100)hist.shift();
-hi=hist.length;
-if(v==="clear"){out.textContent="";return}if(v==="help"){write("Python no navegador. Comandos: help, clear, version, files, load(\"arquivo.py\"). Para pacotes: await install(\"numpy\").","info");return}if(v==="files"){write(Object.keys(project.files).sort().join("\n"),"info");return}
-let m=v.match(/^load\(["'](.+)["']\)$/);if(m){if(m[1] in project.files){open(m[1]);write("Arquivo carregado: "+m[1],"ok")}else write("Arquivo não encontrado: "+m[1],"err");return}
-if(v==="version"){
-  try{
-    await init();
-    write(py.runPython("import sys; sys.version"),"info");
-  }catch(e){
-    write(e?.stack||String(e),"err");
-  }
-  return
-}if(current==="Space Invaders ASCII.py" && /^[adfq]$/.test(v)){try{await init();await py.runPythonAsync("comando("+JSON.stringify(v)+")")}catch(e){write(e.stack||String(e),"err")}return}if(current==="Space Invaders ASCII.py" && (v==="restart"||v==="reiniciar")){try{await init();await py.runPythonAsync("iniciar(); quadro()")}catch(e){write(e.stack||String(e),"err")}return}await execute(v)};
-editor.value=project.files[current]||DEFAULT;renderFiles();syncLines();
-const gameOnly=new URLSearchParams(location.search).get("game")==="1";
-if(gameOnly){
-  document.body.classList.add("game-only");
-  document.querySelector(".top")?.remove();
-  document.querySelector(".workspace")?.style.setProperty("display","flex");
-  document.querySelector(".workspace")?.style.setProperty("padding","0");
-  document.querySelector(".workspace")?.style.setProperty("gap","0");
-  document.querySelector(".workspace>aside")?.remove();
-  document.querySelector(".editor-panel")?.remove();
-  const panel=document.querySelector(".term-panel");
-  if(panel){
-    panel.style.width="100%";
-    panel.style.height="100%";
-    panel.style.border="0";
-    panel.style.borderRadius="0";
-  }
-  showView("game");
-}
-async function cleanupLegacyPwa(){
-  if(!("serviceWorker" in navigator))return;
-  try{
-    const appPath=location.pathname.endsWith("/")?location.pathname:location.pathname+"/";
-    const rs=await navigator.serviceWorker.getRegistrations();
-    await Promise.all(
-      rs
-        .filter(r=>{
-          try{return new URL(r.scope).pathname===appPath}catch(e){return false}
-        })
-        .map(r=>r.unregister())
-    );
-    if("caches" in window){
-      const keys=await caches.keys();
-      await Promise.all(keys.filter(k=>k.startsWith("microconda-shell-")).map(k=>caches.delete(k)));
-    }
-  }catch(e){
-    console.warn("Falha ao limpar recursos legados de PWA:",e);
-  }
-}
-cleanupLegacyPwa();
-init().then(async()=>{
-  if(gameOnly){
-    const pending=localStorage.getItem("microconda-pending-game");
-    if(pending){
-      localStorage.removeItem("microconda-pending-game");
-      editor.value=pending;
-      syncLines();
-      await executeGame(pending);
-    }else{
-      gameStatus.textContent="Nenhum jogo aguardando execução";
-    }
-  }
-}).catch(()=>{});
+function newFile(){const n=prompt("Nome do arquivo:","script.js");if(!n)return;const name2=n.trim();if(!/^[^/\\\\]+\\.(html|css|js)$/i.test(name2))return alert("Use .html, .css ou .js");if(project.files[name2]!=null)return alert("Arquivo já existe.");project.files[name2]="";open(name2)}
+$("run").onclick=runPreview;$("clear").onclick=()=>out.textContent="";$("download").onclick=exportHtml;$("export").onclick=exportHtml;$("reset").onclick=()=>{stopGame();project={files:{"index.html":DEFAULT}};open("index.html");write("Projeto reiniciado.","ok")};
+$("new").onclick=newFile;gameBtn.onclick=runPreview;stopGameBtn.onclick=stopGame;terminalTab.onclick=()=>showView("terminal");gameTab.onclick=()=>showView("game");gameCanvas.addEventListener("pointerdown",focusGameCanvas);editor.oninput=sync;editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
+editor.onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();const s=editor.selectionStart,en=editor.selectionEnd;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(en);editor.selectionStart=editor.selectionEnd=s+4;sync()}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();runPreview()}};
+cmd.onkeydown=async e=>{if(e.key==="ArrowUp"){e.preventDefault();if(hist.length){hi=Math.max(0,hi-1);cmd.value=hist[hi]||""}return}if(e.key==="ArrowDown"){e.preventDefault();if(hist.length){hi=Math.min(hist.length,hi+1);cmd.value=hist[hi]||""}return}if(e.key!=="Enter")return;const v=cmd.value.trim();cmd.value="";if(!v)return;hist.push(v);hi=hist.length;if(v==="clear"){out.textContent="";return}if(v==="files"){write(Object.keys(project.files).sort().join("\n"),"info");return}if(v==="salvar"){saveProject();write("Projeto salvo.","ok");return}if(v==="help"){write("Console JavaScript. Use files, clear, salvar ou escreva JavaScript.","info");return}try{const r=Function(v)();if(r!==undefined)write(r)}catch(e){write(e?.stack||String(e),"err")}};
+editor.value=project.files[current]||DEFAULT;renderFiles();syncLines();stat("Studio pronto",true);write("MicroConda Game Studio pronto.","ok");
+if(location.search.includes("game=1")){document.querySelector(".top")?.remove();document.querySelector(".workspace>aside")?.remove();document.querySelector(".editor-panel")?.remove();document.querySelector(".workspace")?.style.setProperty("display","flex");document.querySelector(".workspace")?.style.setProperty("padding","0");const p=document.querySelector(".term-panel");p.style.width="100%";p.style.height="100%";showView("game");runPreview()}
 })();
-</script></body></html>
+</script></script></body></html>
