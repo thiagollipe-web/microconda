@@ -55,7 +55,7 @@ jobs:
           const end = html.indexOf('"};\nlet project', start);
           if (start < 0 || end < 0) throw new Error("Embedded Space Invaders example not found");
           const encoded = html.slice(start + marker.length, end);
-          const source = JSON.parse('"' + encoded.replace(/"/g, '\\"').replace(/(?<!\\)\\n/g, '\\n') + '"');
+          const source = JSON.parse('"' + encoded + '"');
           fs.writeFileSync("/tmp/embedded_space_invaders.py", source, "utf8");
           console.log("Embedded example extracted");
           NODE
