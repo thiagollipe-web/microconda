@@ -16,7 +16,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           html = Path("index.html").read_text(encoding="utf-8")
-          required = ["id=\"editor\"", "id=\"out\"", "id=\"cmd\"", "loadPyodide", "localStorage"]
+          required = ["id=\"editor\"", "id=\"out\"", "id=\"cmd\"", "gameCanvas", "executeGame", "loadPyodide", "localStorage"]
           missing = [item for item in required if item not in html]
           forbidden = ["manifest.webmanifest", "Instalar PWA", "beforeinstallprompt", 'register("./sw.js")']
           present_forbidden = [item for item in forbidden if item in html]
@@ -44,6 +44,12 @@ jobs:
 
       - name: Validate Space Invaders source
         run: python -m py_compile space_invaders_ascii.py
+
+      - name: Validate game example source
+        run: |
+          python -m py_compile pygame_nave.py
+          grep -q 'pygame-ce' index.html
+          grep -q '07 — Nave Pygame.py' index.html
 
       - name: Validate embedded Space Invaders example
         run: |
