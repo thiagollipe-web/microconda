@@ -75,15 +75,62 @@ function write(t,k=""){
   out.scrollTop=out.scrollHeight;
 }
 function stat(t,ready=false){status.textContent=t;dot.classList.toggle("ready",ready)}
+function showView(which){
+  const isGame=which==="game";
+  terminalView.hidden=isGame;
+  gameView.hidden=!isGame;
+  terminalTab.classList.toggle("primary",!isGame);
+  gameTab.classList.toggle("primary",isGame);
+  if(isGame)gameCanvas.focus();
+}
+function looksLikePygame(code){return /(^|\n)\s*(?:import\s+pygame\b|from\s+pygame\b)/m.test(code)}
+async function prepareGameCanvas(engine){
+  if(!engine?.canvas?.setCanvas2D)throw new Error("Pyodide não expõe a API de canvas necessária para jogos SDL/Pygame.");
+  engine.canvas.setCanvas2D(gameCanvas);
+  gameCanvas.focus();
+}
+async function ensurePygame(engine){
+  if(pygameReady){await prepareGameCanvas(engine);return;}
+  gameStatus.textContent="Carregando Pygame…";
+  await engine.loadPackage(["pygame-ce"]);
+  await prepareGameCanvas(engine);
+  pygameReady=true;
+  gameStatus.textContent="Pygame pronto";
+  write("pygame-ce carregado no canvas do jogo.","ok");
+}
+function gamePrelude(){
+  return `import pygame
+__microconda_original_event_get = pygame.event.get
+def __microconda_event_get(*args, **kwargs):
+    eventos = list(__microconda_original_event_get(*args, **kwargs))
+    if globals().get("__microconda_stop", False):
+        eventos.append(pygame.event.Event(pygame.QUIT))
+    return eventos
+pygame.event.get = __microconda_event_get
+`;
+}
+function stopGame(){
+  if(!gameRunning)return;
+  try{py?.globals?.set("__microconda_stop",true)}catch(e){}
+  gameStatus.textContent="Solicitada a parada";
+  write("Parada solicitada. O loop do jogo precisa ceder o controle ao navegador para encerrar corretamente.","info");
+}
+stopGameBtn.onclick=stopGame;
+gameBtn.onclick=()=>executeGame(editor.value);
+terminalTab.onclick=()=>showView("terminal");
+gameTab.onclick=()=>showView("game");
+gameCanvas.onclick=()=>gameCanvas.focus();
+gameCanvas.onkeydown=e=>{if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault()};
 function renderFiles(){files.innerHTML="";Object.keys(project.files).sort().forEach(n=>{let e=document.createElement("div");e.className="file"+(n===current?" active":"");e.textContent="🐍 "+n;e.onclick=()=>open(n);files.appendChild(e)})}
 function renderDemos(){examples.innerHTML="";Object.keys(DEMOS).forEach(n=>{let e=document.createElement("div");e.className="example";e.textContent=n;e.onclick=()=>{let fn=n.replace(/^\d+ — /,"");if(!project.files[fn])project.files[fn]=DEMOS[n];open(fn)};examples.appendChild(e)})}
 function open(n){if(!(n in project.files))project.files[n]="";current=n;name.textContent=n;editor.value=project.files[n];syncLines();renderFiles();saveProject();editor.focus()}
 async function init(){if(loading)return loading;loading=(async()=>{stat("Carregando Python…");py=await loadPyodide();py.setStdout({batched:s=>write(s)});py.setStderr({batched:s=>write(s,"err")});
-py.globals.set("install",async n=>{let p=String(n||"").trim();if(!/^[A-Za-z0-9._-]+$/.test(p))throw Error("Nome de pacote inválido.");write("Instalando: "+p,"info");await py.loadPackage(["micropip"]);await py.runPythonAsync("import micropip; await micropip.install("+JSON.stringify(p)+")");write("Instalado: "+p,"ok")});
+py.globals.set("install",async n=>{let p=String(n||"").trim();if(!/^[A-Za-z0-9._-]+$/.test(p))throw Error("Nome de pacote inválido.");if(p.toLowerCase()==="pygame"||p.toLowerCase()==="pygame-ce"){await ensurePygame(py);return}write("Instalando: "+p,"info");await py.loadPackage(["micropip"]);await py.runPythonAsync("import micropip; await micropip.install("+JSON.stringify(p)+")");write("Instalado: "+p,"ok")});
 stat("Python pronto",true);write("MicroConda Studio pronto.","ok");write("Python "+py.runPython("import sys; sys.version.split()[0]")+" · WebAssembly","info");return py})().catch(e=>{loading=null;stat("Erro ao carregar Python");write(e.stack||e,"err");throw e});return loading}
 async function execute(code){
   if(!code.trim())return;
   sync();
+  showView("terminal");
   write(">>> "+code,"info");
   try{
     const engine=await init();
@@ -91,6 +138,33 @@ async function execute(code){
     if(r!==undefined&&r!==null)write(typeof r==="string"?r:String(r));
   }catch(e){
     write(e?.stack||String(e),"err");
+  }
+}
+async function executeGame(code){
+  if(!code.trim())return;
+  sync();
+  showView("game");
+  gameRunning=true;
+  gameStatus.textContent="Preparando jogo…";
+  try{
+    const engine=await init();
+    engine.globals.set("__microconda_stop",false);
+    const isPygame=looksLikePygame(code);
+    if(isPygame)await ensurePygame(engine);
+    else write("Modo gráfico genérico: use uma biblioteca compatível com Pyodide/canvas.","info");
+    write("Jogo iniciado no canvas.","info");
+    if(isPygame && /while\s+True/.test(code) && !/await\s+asyncio\.sleep\s*\(/.test(code)){
+      write("Atenção: loop infinito sem await asyncio.sleep(...) pode bloquear o navegador. Em Pygame para web, o loop deve ceder o controle ao browser.","err");
+    }
+    const source=isPygame?gamePrelude()+"\n"+code:code;
+    await engine.runPythonAsync(source);
+    gameStatus.textContent="Jogo encerrado";
+  }catch(e){
+    gameStatus.textContent="Erro no jogo";
+    write(e?.stack||String(e),"err");
+  }finally{
+    gameRunning=false;
+    try{py?.globals?.set("__microconda_stop",false)}catch(e){}
   }
 }
 function download(n,t){let a=document.createElement("a"),u=URL.createObjectURL(new Blob([t],{type:"text/plain;charset=utf-8"}));a.href=u;a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
