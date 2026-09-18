@@ -1,135 +1,68 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b1020">
-<title>MicroConda — Python no navegador</title>
+<title>MicroConda Studio</title>
 <style>
-:root{--bg:#070b14;--panel:#0d1424;--panel2:#111a2d;--line:#22304a;--text:#e8eef8;--muted:#8ea0ba;--accent:#62d7ff;--ok:#6ee7a2;--warn:#ffd166;--danger:#ff7182}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#15213a 0,#070b14 55%);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;height:100vh;overflow:hidden}
-.app{height:100%;display:flex;flex-direction:column}.top{height:64px;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid var(--line);background:rgba(7,11,20,.88);backdrop-filter:blur(12px)}
-.logo{font-weight:800;letter-spacing:.3px}.logo span{color:var(--accent)}.status{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.dot{width:9px;height:9px;border-radius:50%;background:var(--warn);box-shadow:0 0 12px var(--warn)}.dot.ready{background:var(--ok);box-shadow:0 0 12px var(--ok)}
-.actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}button{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:9px;cursor:pointer;font-weight:650}button:hover{border-color:#3a557d;background:#17233b}button.primary{background:#12374a;border-color:#2c7f9e;color:#dff8ff}button.danger{color:#ffb1bc}
-.main{min-height:0;flex:1;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:12px;padding:12px}.panel{min-height:0;border:1px solid var(--line);background:rgba(13,20,36,.9);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}.bar{height:46px;display:flex;align-items:center;padding:0 12px;border-bottom:1px solid var(--line);gap:8px;color:var(--muted);font-size:13px}.bar strong{color:var(--text)}.spacer{margin-left:auto}.editor-wrap{min-height:0;flex:1;display:grid;grid-template-columns:48px 1fr;background:#080d18}.lines{padding:14px 8px;text-align:right;color:#42526d;font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;user-select:none;overflow:hidden}.editor{width:100%;height:100%;resize:none;border:0;outline:0;background:transparent;color:#dce8f7;padding:14px 16px;font:14px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:4;white-space:pre;overflow:auto}.terminal{min-height:0;flex:1;display:flex;flex-direction:column;background:#050912}.output{min-height:0;flex:1;overflow:auto;padding:14px;font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;word-break:break-word}.entry{border-top:1px solid var(--line);display:flex;align-items:center;padding:10px 12px;gap:8px}.prompt{color:var(--accent);font:700 14px ui-monospace,SFMono-Regular,Consolas,monospace}.cmd{min-width:0;flex:1;background:transparent;border:0;outline:0;color:var(--text);font:14px ui-monospace,SFMono-Regular,Consolas,monospace}.hint{padding:8px 12px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}.welcome{color:#a9bbd5}.ok{color:var(--ok)}.err{color:var(--danger)}.info{color:var(--accent)}.footer{padding:7px 14px;color:#647793;font-size:11px;text-align:center}
-@media(max-width:850px){body{overflow:auto;height:auto;min-height:100vh}.app{min-height:100vh}.main{grid-template-columns:1fr;height:auto}.panel{height:58vh;min-height:420px}.top{height:auto;min-height:64px;flex-wrap:wrap;padding:10px 12px}.actions{margin-left:0;width:100%}}
+:root{--bg:#070b14;--p:#0d1424;--p2:#111a2d;--line:#22304a;--tx:#e8eef8;--muted:#8ea0ba;--a:#62d7ff;--ok:#6ee7a2;--bad:#ff7182}
+*{box-sizing:border-box}body{margin:0;height:100vh;overflow:hidden;background:radial-gradient(circle at top,#15213a,#070b14 55%);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,sans-serif}.app{height:100%;display:flex;flex-direction:column}
+.top{min-height:62px;padding:10px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);background:#070b14e8}.logo{font-weight:850}.logo span{color:var(--a)}.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}.dot{width:9px;height:9px;border-radius:50%;background:#ffd166}.dot.ready{background:var(--ok)}.actions{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+button{border:1px solid var(--line);background:var(--p2);color:var(--tx);padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:650}button:hover{border-color:#3a557d}button.primary{background:#12374a;border-color:#2c7f9e}button.danger{color:#ffb1bc}
+.workspace{min-height:0;flex:1;display:grid;grid-template-columns:190px minmax(0,1fr) minmax(320px,.68fr);gap:10px;padding:10px}.panel{min-height:0;border:1px solid var(--line);background:#0d1424e8;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}.bar{height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid var(--line);color:var(--muted);font-size:12px}.bar strong{color:var(--tx)}.spacer{margin-left:auto}
+.side{overflow:auto;padding:8px}.sect{padding:7px;color:#6f83a3;font-size:10px;text-transform:uppercase;letter-spacing:.12em}.file,.example{padding:8px;border-radius:7px;cursor:pointer;font-size:12px}.file{font-family:ui-monospace,Consolas,monospace}.file:hover,.file.active,.example:hover{background:#15233a}.example{margin:3px 0;border:1px solid var(--line);background:#0e1829}
+.editor-wrap{min-height:0;flex:1;display:grid;grid-template-columns:45px 1fr;background:#080d18}.lines{padding:14px 7px;text-align:right;color:#42526d;font:14px/1.55 ui-monospace,Consolas,monospace;white-space:pre;overflow:hidden}.editor{width:100%;height:100%;resize:none;border:0;outline:0;background:transparent;color:#dce8f7;padding:14px 16px;font:14px/1.55 ui-monospace,Consolas,monospace;tab-size:4;white-space:pre;overflow:auto}
+.output{min-height:0;flex:1;overflow:auto;padding:13px;background:#050912;font:13px/1.55 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word}.entry{display:flex;gap:8px;padding:9px;border-top:1px solid var(--line)}.prompt{color:var(--a);font:700 14px ui-monospace,Consolas,monospace}.cmd{min-width:0;flex:1;background:transparent;border:0;outline:0;color:var(--tx);font:14px ui-monospace,Consolas,monospace}.hint{padding:7px 9px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}.ok{color:var(--ok)}.err{color:var(--bad)}.info{color:var(--a)}.footer{padding:6px;border-top:1px solid var(--line);color:#647793;text-align:center;font-size:10px}
+@media(max-width:1050px){.workspace{grid-template-columns:170px minmax(0,1fr)}}@media(max-width:760px){body{overflow:auto;height:auto}.app{min-height:100vh}.workspace{grid-template-columns:1fr}.side{max-height:250px}.editor-panel,.term-panel{height:52vh;min-height:400px}.actions{margin-left:0;width:100%}}
 </style>
 </head>
-<body>
-<div class="app">
-<header class="top">
-  <div class="logo">Micro<span>Conda</span> Python Terminal</div>
-  <div class="status"><i id="dot" class="dot"></i><span id="status">Inicializando Python…</span></div>
-  <div class="actions">
-    <button id="run" class="primary">▶ Executar</button>
-    <button id="clear">Limpar terminal</button>
-    <button id="save">Salvar .py</button>
-    <button id="reset" class="danger">Reset Python</button>
-  </div>
-</header>
-<main class="main">
-<section class="panel">
-  <div class="bar"><strong>main.py</strong><span>Editor Python</span><span class="spacer">Ctrl+Enter para executar</span></div>
-  <div class="editor-wrap">
-    <div id="lines" class="lines">1</div>
-    <textarea id="editor" class="editor" spellcheck="false">print("Olá, MicroConda!")
-nome = "Python"
-for i in range(3):
-    print(f"Executando {nome}: {i + 1}")
-
-print("2 + 3 =", 2 + 3)</textarea>
-  </div>
-</section>
-<section class="panel">
-  <div class="bar"><strong>Terminal</strong><span>Python no navegador</span></div>
-  <div id="output" class="output"></div>
-  <div class="entry"><span class="prompt">>>></span><input id="cmd" class="cmd" autocomplete="off" placeholder="Digite uma expressão Python ou: help"></div>
-  <div class="hint">Comandos: <b>help</b>, <b>clear</b>, <b>version</b>. Pacotes: use <b>install("numpy")</b>.</div>
-</section>
-</main>
-<div class="footer">MicroConda Browser Terminal · CPython via WebAssembly/Pyodide · seus códigos permanecem no navegador</div>
-</div>
+<body><div class="app">
+<header class="top"><div class="logo">Micro<span>Conda</span> Studio</div><div class="status"><i id="dot" class="dot"></i><span id="status">Inicializando Python…</span></div>
+<div class="actions"><button id="new">＋ Novo</button><button id="run" class="primary">▶ Executar</button><button id="clear">Limpar terminal</button><button id="download">Baixar .py</button><button id="export">Exportar projeto</button><button id="reset" class="danger">Reset</button></div></header>
+<main class="workspace">
+<aside class="panel"><div class="bar"><strong>Projeto</strong><span class="spacer">Local</span></div><div id="files" class="side"></div><div class="bar"><strong>Exemplos</strong></div><div id="examples" class="side"></div></aside>
+<section class="panel editor-panel"><div class="bar"><strong id="name">main.py</strong><span>Editor Python</span><span class="spacer">Ctrl+Enter · Tab</span></div><div class="editor-wrap"><div id="lines" class="lines">1</div><textarea id="editor" class="editor" spellcheck="false" aria-label="Editor Python"></textarea></div></section>
+<section class="panel term-panel"><div class="bar"><strong>Terminal</strong><span>REPL</span></div><div id="out" class="output" aria-live="polite"></div><div class="entry"><span class="prompt">&gt;&gt;&gt;</span><input id="cmd" class="cmd" autocomplete="off" placeholder="Python, help, clear, files"></div><div class="hint">help · clear · version · files · load("arquivo.py") · install("numpy")</div></section>
+</main><div class="footer">MicroConda Studio · Python no navegador com Pyodide/WebAssembly · projeto persistido neste navegador</div></div>
 <script src="https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.js"></script>
 <script>
-(() => {
-  const editor=document.getElementById("editor"), output=document.getElementById("output");
-  const status=document.getElementById("status"), dot=document.getElementById("dot");
-  const run=document.getElementById("run"), clear=document.getElementById("clear");
-  const save=document.getElementById("save"), reset=document.getElementById("reset");
-  const cmd=document.getElementById("cmd"), lines=document.getElementById("lines");
-  let pyodide=null, loading=null, history=[], historyIndex=-1;
-
-  const write=(text,kind="")=>{
-    const el=document.createElement("div"); el.className=kind; el.textContent=text;
-    output.appendChild(el); output.scrollTop=output.scrollHeight;
-  };
-  const syncLines=()=>{
-    const n=editor.value.split("\n").length;
-    lines.textContent=Array.from({length:n},(_,i)=>i+1).join("\n");
-  };
-  const setStatus=(text,ready=false)=>{
-    status.textContent=text; dot.classList.toggle("ready",ready);
-  };
-  const init=async()=>{
-    if(loading) return loading;
-    loading=(async()=>{
-      setStatus("Carregando Python…");
-      pyodide=await loadPyodide();
-      pyodide.setStdout({batched:s=>write(s)});
-      pyodide.setStderr({batched:s=>write(s,"err")});
-      pyodide.globals.set("install", async name => {
-        write("Instalando pacote: "+name,"info");
-        await pyodide.loadPackage(["micropip"]);
-        await pyodide.runPythonAsync("import micropip; await micropip.install("+JSON.stringify(name)+")");
-        write("Pacote instalado: "+name,"ok");
-      });
-      setStatus("Python pronto",true);
-      write("MicroConda Terminal pronto.","ok");
-      write("Python "+pyodide.runPython("import sys; sys.version.split()[0]")+" · WebAssembly","info");
-      return pyodide;
-    })().catch(err=>{setStatus("Erro ao carregar Python");write(String(err),"err");throw err});
-    return loading;
-  };
-  const execute=async(code)=>{
-    if(!code.trim()) return;
-    const engine=await init();
-    write(">>> "+code,"info");
-    try{
-      const result=await engine.runPythonAsync(code);
-      if(result!==undefined && result!==null){
-        const text=typeof result==="string"?result:JSON.stringify(result);
-        if(text) write(text);
-      }
-    }catch(err){write(String(err),"err")}
-  };
-  run.onclick=()=>execute(editor.value);
-  clear.onclick=()=>{output.textContent=""};
-  reset.onclick=async()=>{pyodide=null;loading=null;output.textContent="";setStatus("Reiniciando…");await init()};
-  save.onclick=()=>{
-    const blob=new Blob([editor.value],{type:"text/plain;charset=utf-8"});
-    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="main.py";a.click();URL.revokeObjectURL(a.href);
-  };
-  editor.addEventListener("input",()=>{syncLines();localStorage.setItem("microconda-python-code",editor.value)});
-  editor.addEventListener("scroll",()=>{lines.scrollTop=editor.scrollTop});
-  editor.addEventListener("keydown",e=>{
-    if(e.key==="Tab"){e.preventDefault();const s=editor.selectionStart;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(editor.selectionEnd);editor.selectionStart=editor.selectionEnd=s+4;syncLines()}
-    if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();execute(editor.value)}
-  });
-  cmd.addEventListener("keydown",async e=>{
-    if(e.key==="ArrowUp"){e.preventDefault();if(history.length){historyIndex=Math.max(0,historyIndex-1);cmd.value=history[historyIndex]}} 
-    if(e.key==="ArrowDown"){e.preventDefault();if(history.length){historyIndex=Math.min(history.length,historyIndex+1);cmd.value=history[historyIndex]||""}}
-    if(e.key!=="Enter") return;
-    const value=cmd.value.trim();cmd.value="";
-    if(!value)return;
-    history.push(value);historyIndex=history.length;
-    if(value==="clear"){clear.click();return}
-    if(value==="help"){write("Digite Python diretamente. Exemplos: print(2+2), import math; math.sqrt(25), [x*x for x in range(5)]","info");return}
-    if(value==="version"){await init();write(pyodide.runPython("import sys; sys.version"),"info");return}
-    await execute(value);
-  });
-  const saved=localStorage.getItem("microconda-python-code");if(saved)editor.value=saved;
-  syncLines();init();
+(()=>{"use strict";
+const $=id=>document.getElementById(id),editor=$("editor"),out=$("out"),lines=$("lines"),files=$("files"),examples=$("examples"),name=$("name"),cmd=$("cmd"),status=$("status"),dot=$("dot");
+const KEY="microconda-studio-project-v2";
+const DEFAULT='print("Olá, MicroConda!")\n\nfor i in range(5):\n    print("Contagem:", i)\n\nprint("2 + 3 =", 2 + 3)';
+const DEMOS={
+"01 — Olá Python.py":'print("Olá, mundo!")\nfor i in range(5):\n    print("Contagem:", i)',
+"02 — Funções.py":'def saudacao(nome):\n    return f"Olá, {nome}!"\n\nprint(saudacao("Python"))',
+"03 — Listas.py":'numeros=[1,2,3,4,5]\nprint([n*n for n in numeros])',
+"04 — Dicionário.py":'aluno={"nome":"Ana","nota":9.5}\nprint(aluno["nome"], aluno["nota"])',
+"05 — NumPy.py":'install("numpy")\nimport numpy as np\nprint(np.array([1,2,3]) * 2)'
+};
+let project=load(),current="main.py",py=null,loading=null,hist=[],hi=-1;
+function load(){try{let x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&x.files)return x}catch(e){}return{files:{"main.py":DEFAULT}}}
+function saveProject(){localStorage.setItem(KEY,JSON.stringify(project))}
+function sync(){project.files[current]=editor.value;saveProject();syncLines()}
+function syncLines(){let n=Math.max(1,editor.value.split("\n").length);lines.textContent=Array.from({length:n},(_,i)=>i+1).join("\n")}
+function write(t,k=""){let e=document.createElement("div");e.className=k;e.textContent=String(t);out.appendChild(e);out.scrollTop=out.scrollHeight}
+function stat(t,ready=false){status.textContent=t;dot.classList.toggle("ready",ready)}
+function renderFiles(){files.innerHTML="";Object.keys(project.files).sort().forEach(n=>{let e=document.createElement("div");e.className="file"+(n===current?" active":"");e.textContent="🐍 "+n;e.onclick=()=>open(n);files.appendChild(e)})}
+function renderDemos(){examples.innerHTML="";Object.keys(DEMOS).forEach(n=>{let e=document.createElement("div");e.className="example";e.textContent=n;e.onclick=()=>{let fn=n.replace(/^\d+ — /,"");if(!project.files[fn])project.files[fn]=DEMOS[n];open(fn)};examples.appendChild(e)})}
+function open(n){if(!(n in project.files))project.files[n]="";current=n;name.textContent=n;editor.value=project.files[n];syncLines();renderFiles();saveProject();editor.focus()}
+async function init(){if(loading)return loading;loading=(async()=>{stat("Carregando Python…");py=await loadPyodide();py.setStdout({batched:s=>write(s)});py.setStderr({batched:s=>write(s,"err")});
+py.globals.set("install",async n=>{let p=String(n||"").trim();if(!/^[A-Za-z0-9._-]+$/.test(p))throw Error("Nome de pacote inválido.");write("Instalando: "+p,"info");await py.loadPackage(["micropip"]);await py.runPythonAsync("import micropip; await micropip.install("+JSON.stringify(p)+")");write("Instalado: "+p,"ok")});
+stat("Python pronto",true);write("MicroConda Studio pronto.","ok");write("Python "+py.runPython("import sys; sys.version.split()[0]")+" · WebAssembly","info");return py})().catch(e=>{loading=null;stat("Erro ao carregar Python");write(e.stack||e,"err");throw e});return loading}
+async function execute(code){if(!code.trim())return;sync();let engine=await init();write(">>> "+code,"info");try{let r=await engine.runPythonAsync(code);if(r!==undefined&&r!==null)write(typeof r==="string"?r:String(r))}catch(e){write(e.stack||String(e),"err")}}
+function download(n,t){let a=document.createElement("a"),u=URL.createObjectURL(new Blob([t],{type:"text/plain;charset=utf-8"}));a.href=u;a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+$("run").onclick=()=>execute(editor.value);$("clear").onclick=()=>out.textContent="";
+$("download").onclick=()=>{sync();download(current,editor.value)};
+$("export").onclick=()=>{sync();download("microconda-project.json",JSON.stringify(project,null,2));write("Projeto exportado.","ok")};
+$("reset").onclick=async()=>{py=null;loading=null;out.textContent="";await init()};
+$("new").onclick=()=>{let n=prompt("Nome do arquivo:","novo.py");if(!n)return;n=n.trim();if(!/^[-\\w. ]+\.py$/i.test(n))return alert("Use um nome terminado em .py");if(n in project.files)return alert("Arquivo já existe.");project.files[n]="";open(n)};
+editor.oninput=sync;editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
+editor.onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();let s=editor.selectionStart,en=editor.selectionEnd;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(en);editor.selectionStart=editor.selectionEnd=s+4;sync()}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();execute(editor.value)}};
+cmd.onkeydown=async e=>{if(e.key==="ArrowUp"){e.preventDefault();if(hist.length){hi=Math.max(0,hi-1);cmd.value=hist[hi]||""}return}if(e.key==="ArrowDown"){e.preventDefault();if(hist.length){hi=Math.min(hist.length,hi+1);cmd.value=hist[hi]||""}return}if(e.key!=="Enter")return;let v=cmd.value.trim();cmd.value="";if(!v)return;hist.push(v);hi=hist.length;
+if(v==="clear"){out.textContent="";return}if(v==="help"){write("Python no navegador. Comandos: help, clear, version, files, load("arquivo.py").","info");return}if(v==="files"){write(Object.keys(project.files).sort().join("\n"),"info");return}
+let m=v.match(/^load\(["'](.+)["']\)$/);if(m){if(m[1] in project.files){open(m[1]);write("Arquivo carregado: "+m[1],"ok")}else write("Arquivo não encontrado: "+m[1],"err");return}
+if(v==="version"){try{await init();write(py.runPython("import sys; sys.version"),"info")}catch(e){}return}await execute(v)};
+editor.value=project.files[current]||DEFAULT;renderFiles();renderDemos();syncLines();init();
 })();
-</script>
-</body>
-</html>
+</script></body></html>
