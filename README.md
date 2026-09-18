@@ -1,4 +1,4 @@
-# MicroConda Studio
+# MicroConda Game Studio
 
 <div align="center">
 
@@ -6,9 +6,9 @@
 
 # MicroConda
 
-**Um ambiente Python leve e educativo, direto no navegador.**
+**Um estúdio leve para criar jogos em HTML, CSS e JavaScript diretamente no navegador.**
 
-[**Abrir MicroConda Studio**](https://thiagollipe-web.github.io/microconda/)
+[**Abrir MicroConda Game Studio**](https://thiagollipe-web.github.io/microconda/)
 
 </div>
 
@@ -16,98 +16,87 @@
 
 ## Visão geral
 
-O MicroConda Studio transforma o navegador em um pequeno ambiente de desenvolvimento Python. A proposta é permitir que o usuário escreva, execute e organize código sem instalar um IDE tradicional.
+O MicroConda Game Studio transforma o navegador em um ambiente simples para criação e teste de jogos 2D. O editor trabalha com **HTML, CSS e JavaScript**, com visualização em **Canvas** e foco em uso mobile.
 
-O projeto utiliza **Pyodide/WebAssembly** para executar Python no navegador e possui uma interface **mobile-first**, otimizada para uso em telas de celular.
+O projeto é **client-side** e salva o projeto no `LocalStorage` do próprio navegador.
 
-## O que já existe
+## Recursos
 
-- Editor Python com numeração de linhas.
-- Modo gráfico com canvas HTML5 para jogos Python.
-- Suporte integrado a `pygame-ce` no navegador.
-- Terminal REPL integrado.
-- Execução com Ctrl + Enter.
-- Projetos com múltiplos arquivos .py.
-- Persistência local do projeto no navegador.
+- Editor com numeração de linhas.
+- Projetos com arquivos `.html`, `.css` e `.js`.
+- Execução imediata no painel de jogo.
+- Pré-visualização isolada em `iframe` com sandbox.
+- Suporte a interação por toque e ponteiro.
+- Histórico simples do console.
+- Persistência automática no navegador.
 - Criação de novos arquivos.
-- Download de arquivos .py.
-- Exportação do projeto em JSON.
-- Histórico de comandos do terminal.
-- Comandos help, clear, version, files e load(...).
-- Instalação de pacotes Python compatíveis via micropip.
-- Interface responsiva para telas menores.
-- Logo e identidade visual próprias.
+- Exportação do jogo como **um único arquivo HTML**.
+- Abertura do jogo em uma nova janela.
 
-## Como o projeto funciona
+## Fluxo do projeto
 
 ```text
-┌──────────────────────────────┐
-│       MicroConda Studio      │
-├───────────┬──────────┬───────┤
-│ Projeto   │ Editor   │Terminal│
-│ arquivos  │ Python   │ REPL   │
-└───────────┴─────┬────┴───────┘
-                  │
-                  ▼
-          Pyodide / WebAssembly
-                  │
-                  ▼
-             Python no browser
+MicroConda Game Studio
+        │
+        ├── HTML
+        ├── CSS
+        └── JavaScript
+              │
+              ▼
+          Canvas / DOM
+              │
+              ▼
+       Pré-visualização do jogo
+              │
+              ▼
+      Exportação: jogo.html
 ```
 
-O aplicativo é essencialmente client-side: o código Python é enviado ao runtime Pyodide dentro do navegador.
+O arquivo `index.html` funciona como a interface completa do Studio. Os arquivos criados pelo usuário ficam armazenados localmente no navegador.
 
-## Interface mobile-first
+## Interface
 
-<img src="./docs/screenshots/microconda-studio-desktop.svg" alt="MicroConda Studio desktop" width="100%">
+<img src="./docs/screenshots/microconda-studio-desktop.svg" alt="MicroConda Game Studio desktop" width="100%">
 
-## Jogos Python no navegador
+No celular, a interface reorganiza editor, projeto, console e área de jogo para caber na tela.
 
-O Studio possui um **Modo Jogo** separado do Terminal. Ao clicar em **🎮 Executar jogo**, o código atual é executado no canvas gráfico.
+## Criando um jogo
 
-Para jogos 2D em Python, o caminho principal é **pygame-ce**. O Pyodide atual disponibiliza `pygame-ce` como pacote integrado, e a API de canvas permite direcionar a saída SDL para um elemento HTMLCanvasElement. Consulte a [documentação do Pyodide sobre pacotes](https://pyodide.org/en/stable/usage/packages-in-pyodide.html) e [SDL/Pygame no navegador](https://pyodide.org/en/0.29.4/usage/sdl.html).
+O projeto inicial contém um exemplo mínimo em Canvas. Edite o arquivo `index.html` e clique em **▶ Executar** ou em **🎮 Executar jogo**.
 
-Exemplo mínimo:
+Para projetos com mais arquivos, crie arquivos `.css` e `.js`. O Studio incorpora esses arquivos na pré-visualização e, ao exportar, reúne o conteúdo em um único HTML.
 
-```python
-import asyncio
-import pygame
+O jogo executado pelo Studio fica dentro de um `iframe` sandbox. Isso permite testar código do usuário sem misturá-lo diretamente com a interface do editor.
 
-async def main():
-    pygame.init()
-    tela = pygame.display.set_mode((640, 360))
-    rodando = True
+## Exportação
 
-    while rodando:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                rodando = False
+Use **Baixar HTML** ou **Exportar jogo** para gerar um arquivo `.html` autocontido.
 
-        tela.fill((10, 20, 40))
-        pygame.display.flip()
-        await asyncio.sleep(1 / 60)
+O arquivo exportado reúne:
 
-    pygame.quit()
+- HTML do projeto.
+- CSS dos arquivos `.css`.
+- JavaScript dos arquivos `.js`.
 
-await main()
+Não é necessário gerar ZIP ou estrutura de pastas para executar o jogo exportado.
+
+## Armazenamento
+
+O projeto é salvo automaticamente no armazenamento local do navegador usando a chave:
+
+```text
+microconda-game-studio-v1
 ```
 
-**Importante:** no navegador, um `while True` ou outro loop infinito que nunca cede o controle pode bloquear a atualização da página. Para animações contínuas, use um loop assíncrono com `await asyncio.sleep(...)`.
-
-O botão **■ Parar** envia um sinal de parada e o Studio injeta um evento `pygame.QUIT`; isso funciona quando o jogo processa `pygame.event.get()` e o loop continua cedendo o controle ao navegador.
-
-## Navegador e persistência
-
-O MicroConda roda no navegador com **Pyodide/WebAssembly** e salva o projeto em **LocalStorage** deste navegador.
-
-O runtime Python depende do carregamento do Pyodide pela CDN oficial usada no projeto. Portanto, a aplicação não promete execução Python totalmente offline em uma nova sessão.
-
+Os dados permanecem no navegador/dispositivo usado para criar o projeto.
 
 ## Testar
 
-Acesse: **https://thiagollipe-web.github.io/microconda/**
+Acesse:
 
-No celular, abra o endereço diretamente no navegador. A interface se adapta ao tamanho da tela. O modo jogo utiliza o mesmo painel gráfico.
+https://thiagollipe-web.github.io/microconda/
+
+No celular, use o navegador normalmente. Para jogar em uma janela dedicada, use **↗ Abrir jogo em janela** dentro do painel de jogo.
 
 ## Estrutura principal
 
@@ -118,14 +107,12 @@ microconda/
 │   └── microconda.svg
 ├── docs/
 │   └── screenshots/
-│       ├── microconda-studio-desktop.svg
-│       ├── microconda-studio-mobile.svg
-│       └── space-invaders-ascii.svg
-├── space_invaders_ascii.py
+│       └── microconda-studio-desktop.svg
+├── tests/
+│   └── browser-smoke.mjs
 ├── .github/
 │   └── workflows/
 │       └── validate.yml
-├── sw.js              # limpeza de instalações/cache PWA legados
 └── LICENSE
 ```
 
@@ -133,21 +120,23 @@ microconda/
 
 | Tecnologia | Função |
 |---|---|
-| HTML5 | Interface |
-| CSS3 | Layout responsivo |
-| JavaScript | IDE, terminal e integração |
-| Python | Linguagem executada |
-| Pyodide | Python via WebAssembly |
-| LocalStorage | Persistência local |
+| HTML5 | Interface e estrutura dos jogos |
+| CSS3 | Layout responsivo e estilos |
+| JavaScript | Editor, execução, persistência e exportação |
+| Canvas | Renderização de jogos 2D |
+| LocalStorage | Salvamento local |
+| iframe sandbox | Isolamento da pré-visualização |
 
 ## Estado do projeto
 
-O projeto está em evolução, com foco em um Python Studio educacional **mobile-first**, com editor, terminal e modo jogo adaptados para telas pequenas. A instalação PWA e o botão de instalação foram removidos; o arquivo `sw.js` permanece apenas como rotina de limpeza para instalações antigas.
+O MicroConda Game Studio está direcionado para uma experiência **mobile-first**, simples e local, com foco em prototipação de jogos e exportação de arquivos HTML independentes.
 
 ## Licença
 
-Este projeto mantém a licença presente no arquivo LICENSE.
+Este projeto mantém a licença presente no arquivo `LICENSE`.
 
 <div align="center">
-**MicroConda Studio · Python no navegador**
+
+**MicroConda Game Studio · HTML · CSS · JavaScript · Canvas**
+
 </div>
