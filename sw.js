@@ -1,10 +1,7 @@
-/*
- * Limpeza de legado PWA.
- * Mantido temporariamente para desregistrar versões antigas do Service Worker
- * e remover o cache "microconda-shell-*". O Studio atual não registra PWA.
- */
+// MicroConda não usa PWA/service worker.
+// Este arquivo existe apenas para limpar instalações/cache antigos.
 self.addEventListener("install", event => {
-  event.waitUntil(self.skipWaiting());
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", event => {
