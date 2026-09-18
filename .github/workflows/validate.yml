@@ -1,0 +1,62 @@
+name: Validate MicroConda
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  static-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate browser shell and legacy PWA cleanup
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("index.html").read_text(encoding="utf-8")
+          required = ["id=\"editor\"", "id=\"out\"", "id=\"cmd\"", "loadPyodide", "localStorage"]
+          missing = [item for item in required if item not in html]
+          forbidden = ["manifest.webmanifest", "Instalar PWA", "beforeinstallprompt", 'register("./sw.js")']
+          present_forbidden = [item for item in forbidden if item in html]
+          if missing:
+              raise SystemExit(f"Missing required markers: {missing}")
+          if present_forbidden:
+              raise SystemExit(f"Obsolete PWA markers still present: {present_forbidden}")
+          print("HTML smoke checks: OK")
+          PY
+
+      - name: Validate JavaScript syntax
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const html = fs.readFileSync("index.html", "utf8");
+          const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
+            .map(m => m[1].trim())
+            .filter(Boolean);
+          if (scripts.length !== 1) {
+            throw new Error(`Expected one inline script, found ${scripts.length}`);
+          }
+          new Function(scripts[0]);
+          console.log("JavaScript syntax: OK");
+          NODE
+
+      - name: Validate Space Invaders source
+        run: python -m py_compile space_invaders_ascii.py
+
+      - name: Validate embedded Space Invaders example
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const html = fs.readFileSync("index.html", "utf8");
+          const marker = '"06 — Space Invaders ASCII.py":"';
+          const start = html.indexOf(marker);
+          const end = html.indexOf('"};\nlet project', start);
+          if (start < 0 || end < 0) throw new Error("Embedded Space Invaders example not found");
+          const encoded = html.slice(start + marker.length, end);
+          const source = JSON.parse('"' + encoded.replace(/"/g, '\\"').replace(/(?<!\\)\\n/g, '\\n') + '"');
+          fs.writeFileSync("/tmp/embedded_space_invaders.py", source, "utf8");
+          console.log("Embedded example extracted");
+          NODE
+          python -m py_compile /tmp/embedded_space_invaders.py
