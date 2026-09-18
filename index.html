@@ -85,7 +85,7 @@ function showView(which){
   gameView.hidden=!isGame;
   terminalTab.classList.toggle("primary",!isGame);
   gameTab.classList.toggle("primary",isGame);
-  if(isGame)gameCanvas.focus();
+  if(isGame)(gameTargetCanvas?.isConnected?gameTargetCanvas:gameCanvas).focus();
 }
 function looksLikePygame(code){return /(^|\n)\s*(?:import\s+pygame\b|from\s+pygame\b)/m.test(code)}
 async function prepareGameCanvas(engine){
