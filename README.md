@@ -23,6 +23,8 @@ O projeto utiliza **Pyodide/WebAssembly** para executar Python no navegador e po
 ## O que já existe
 
 - Editor Python com numeração de linhas.
+- Modo gráfico com canvas HTML5 para jogos Python.
+- Suporte integrado a `pygame-ce` no navegador.
 - Terminal REPL integrado.
 - Execução com Ctrl + Enter.
 - Projetos com múltiplos arquivos .py.
@@ -80,6 +82,41 @@ F = atirar
 Q = sair
 ```
 
+## Jogos Python no navegador
+
+O Studio possui um **Modo Jogo** separado do Terminal. Ao clicar em **🎮 Executar jogo**, o código atual é executado no canvas gráfico.
+
+Para jogos 2D em Python, o caminho principal é **pygame-ce**. O Pyodide atual disponibiliza `pygame-ce` como pacote integrado, e a API de canvas permite direcionar a saída SDL para um elemento HTMLCanvasElement. Consulte a [documentação do Pyodide sobre pacotes](https://pyodide.org/en/stable/usage/packages-in-pyodide.html) e [SDL/Pygame no navegador](https://pyodide.org/en/0.29.4/usage/sdl.html).
+
+Exemplo mínimo:
+
+```python
+import asyncio
+import pygame
+
+async def main():
+    pygame.init()
+    tela = pygame.display.set_mode((640, 360))
+    rodando = True
+
+    while rodando:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                rodando = False
+
+        tela.fill((10, 20, 40))
+        pygame.display.flip()
+        await asyncio.sleep(1 / 60)
+
+    pygame.quit()
+
+await main()
+```
+
+**Importante:** no navegador, um `while True` ou outro loop infinito que nunca cede o controle pode bloquear a atualização da página. Para animações contínuas, use um loop assíncrono com `await asyncio.sleep(...)`.
+
+O botão **■ Parar** envia um sinal de parada e o Studio injeta um evento `pygame.QUIT`; isso funciona quando o jogo processa `pygame.event.get()` e o loop continua cedendo o controle ao navegador.
+
 ## Navegador e persistência
 
 O MicroConda roda no navegador com **Pyodide/WebAssembly** e salva o projeto em **LocalStorage** deste navegador.
@@ -91,7 +128,7 @@ O runtime Python depende do carregamento do Pyodide pela CDN oficial usada no pr
 
 Acesse: **https://thiagollipe-web.github.io/microconda/**
 
-No celular, abra o endereço diretamente no navegador. A interface se adapta ao tamanho da tela.
+No celular, abra o endereço diretamente no navegador. A interface se adapta ao tamanho da tela. O modo jogo utiliza o mesmo painel gráfico.
 
 ## Estrutura principal
 
