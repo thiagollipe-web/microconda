@@ -24,7 +24,7 @@ button{border:1px solid var(--line);background:var(--p2);color:var(--tx);padding
 <section class="panel editor-panel"><div class="bar"><strong id="name">index.html</strong><span>Editor HTML · CSS · JavaScript</span><span class="spacer">Ctrl+Enter · Tab</span></div><div class="editor-wrap"><div id="lines" class="lines">1</div><textarea id="editor" class="editor" spellcheck="false" aria-label="Editor de código"></textarea></div></section>
 <section class="panel term-panel">
 <div class="bar"><div class="view-tabs"><button id="terminalTab" class="mini primary">Terminal</button><button id="gameTab" class="mini">🎮 Jogo</button></div><span>MicroConda</span></div>
-<div id="terminalView" style="min-height:0;flex:1;display:flex;flex-direction:column"><div id="out" class="output" aria-live="polite"></div><div class="entry"><span class="prompt">&gt;</span><input id="cmd" class="cmd" autocomplete="off" placeholder="Console JavaScript"></div><div class="hint">console.log · clear · files · salvar</div></div>
+<div id="terminalView" style="min-height:0;flex:1;display:flex;flex-direction:column"><div id="out" class="output" aria-live="polite"></div><div class="entry"><span class="prompt">&gt;</span><input id="cmd" class="cmd" autocomplete="off" placeholder="Console JavaScript"></div><div class="hint">help · clear · files · salvar</div></div>
 <div id="gameView" class="game-view" hidden><div class="game-toolbar"><button id="openGameWindow" class="primary mini">↗ Abrir jogo em janela</button><span id="gameStatus" class="game-status">Jogo parado</span><span class="spacer"></span><button id="stopGame" class="danger mini">■ Parar</button></div><div class="canvas-wrap"></div><div class="game-help">Toque na tela para interagir com o jogo.</div></div>
 </section>
 </main><div class="footer">MicroConda Studio · HTML · CSS · JavaScript · Canvas · projeto salvo localmente neste navegador</div></div>
@@ -90,7 +90,6 @@ function buildDocument(){
 function runPreview(){
   sync();showView("game");gameStatus.textContent="Executando…";gameRunning=true;
   const doc=buildDocument();
-
   const old=gameView.querySelector("iframe.preview-frame");if(old)old.remove();
   const iframe=document.createElement("iframe");iframe.className="preview-frame";iframe.setAttribute("sandbox","allow-scripts allow-pointer-lock");iframe.setAttribute("title","Pré-visualização do jogo");
   iframe.style.cssText="width:100%;height:100%;border:0;background:#000;display:block;";
