@@ -3,9 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#070b14">
-<link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/microconda.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="./icons/microconda.svg">
 <title>MicroConda Studio</title>
 <style>
 :root{--bg:#070b14;--p:#0d1424;--p2:#111a2d;--line:#22304a;--tx:#e8eef8;--muted:#8ea0ba;--a:#62d7ff;--ok:#6ee7a2;--bad:#ff7182}
@@ -21,7 +19,7 @@ button{border:1px solid var(--line);background:var(--p2);color:var(--tx);padding
 </head>
 <body><div class="app">
 <header class="top"><div class="brand"><img class="brand-logo" src="./icons/microconda.svg" alt="Logo MicroConda"><div class="logo">Micro<span>Conda</span> Studio</div></div><div class="status"><i id="dot" class="dot"></i><span id="status">Inicializando Python…</span></div>
-<div class="actions"><button id="new">＋ Novo</button><button id="run" class="primary">▶ Executar</button><button id="clear">Limpar terminal</button><button id="download">Baixar .py</button><button id="export">Exportar projeto</button><button id="install" class="primary" hidden>Instalar PWA</button><button id="reset" class="danger">Reset</button></div></header>
+<div class="actions"><button id="new">＋ Novo</button><button id="run" class="primary">▶ Executar</button><button id="clear">Limpar terminal</button><button id="download">Baixar .py</button><button id="export">Exportar projeto</button><button id="reset" class="danger">Reset</button></div></header>
 <main class="workspace">
 <aside class="panel"><div class="bar"><strong>Projeto</strong><span class="spacer">Local</span></div><div id="files" class="side"></div><div class="bar"><strong>Exemplos</strong></div><div id="examples" class="side"></div></aside>
 <section class="panel editor-panel"><div class="bar"><strong id="name">main.py</strong><span>Editor Python</span><span class="spacer">Ctrl+Enter · Tab</span></div><div class="editor-wrap"><div id="lines" class="lines">1</div><textarea id="editor" class="editor" spellcheck="false" aria-label="Editor Python"></textarea></div></section>
@@ -31,16 +29,47 @@ button{border:1px solid var(--line);background:var(--p2);color:var(--tx);padding
 <script>
 (()=>{"use strict";
 const $=id=>document.getElementById(id),editor=$("editor"),out=$("out"),lines=$("lines"),files=$("files"),examples=$("examples"),name=$("name"),cmd=$("cmd"),status=$("status"),dot=$("dot");
-let deferredInstall=null;
 const KEY="microconda-studio-project-v2";
 const DEFAULT='print("Olá, MicroConda!")\n\nfor i in range(5):\n    print("Contagem:", i)\n\nprint("2 + 3 =", 2 + 3)';
 const DEMOS={"01 — Olá Python.py":"print(\"Olá, mundo!\")\nfor i in range(5):\n    print(\"Contagem:\", i)","02 — Funções.py":"def saudacao(nome):\n    return f\"Olá, {nome}!\"\n\nprint(saudacao(\"Python\"))","03 — Listas.py":"numeros=[1,2,3,4,5]\nprint([n*n for n in numeros])","04 — Dicionário.py":"aluno={\"nome\":\"Ana\",\"nota\":9.5}\nprint(aluno[\"nome\"], aluno[\"nota\"])","05 — NumPy.py":"install(\"numpy\")\nimport numpy as np\nprint(np.array([1,2,3]) * 2)","06 — Space Invaders ASCII.py":"# Space Invaders ASCII — modo navegador\n# Execute este arquivo uma vez.\n# Depois use no terminal: a = esquerda | d = direita | f = atirar | q = sair\n\nLARGURA = 31\nALTURA = 14\n\nestado = {\n    \"x\": LARGURA // 2,\n    \"aliens\": [],\n    \"tiros\": [],\n    \"score\": 0,\n    \"turno\": 0,\n    \"ativo\": True\n}\n\ndef iniciar():\n    estado[\"x\"] = LARGURA // 2\n    estado[\"aliens\"] = []\n    estado[\"tiros\"] = []\n    estado[\"score\"] = 0\n    estado[\"turno\"] = 0\n    estado[\"ativo\"] = True\n    for y in (1, 3, 5):\n        for x in range(3, LARGURA - 2, 4):\n            estado[\"aliens\"].append([x, y])\n\ndef quadro():\n    tela = [[\" \" for _ in range(LARGURA)] for _ in range(ALTURA)]\n    for x, y in estado[\"aliens\"]:\n        if 0 <= x < LARGURA and 0 <= y < ALTURA:\n            tela[y][x] = \"W\"\n    for x, y in estado[\"tiros\"]:\n        if 0 <= x < LARGURA and 0 <= y < ALTURA:\n            tela[y][x] = \"|\"\n    x = estado[\"x\"]\n    tela[ALTURA - 2][max(0, x - 1)] = \"/\"\n    tela[ALTURA - 2][x] = \"A\"\n    tela[ALTURA - 2][min(LARGURA - 1, x + 1)] = \"\\\"\n    print(\"\\n\" + \"=\" * LARGURA)\n    print(\"        SPACE INVADERS ASCII\")\n    print(\"=\" * LARGURA)\n    print(f\"SCORE: {estado['score']:04d}   INVASORES: {len(estado['aliens']):02d}\")\n    print(\"-\" * LARGURA)\n    for linha in tela:\n        print(\"|\" + \"\".join(linha) + \"|\")\n    print(\"=\" * LARGURA)\n    print(\"A esquerda | D direita | F atirar | Q sair\")\n\ndef mover_tiros():\n    novos = []\n    removidos = set()\n    for x, y in estado[\"tiros\"]:\n        ny = y - 1\n        atingiu = None\n        for i, (ax, ay) in enumerate(estado[\"aliens\"]):\n            if ax == x and ay == ny:\n                atingiu = i\n                break\n        if atingiu is not None:\n            removidos.add(atingiu)\n            estado[\"score\"] += 10\n        elif ny >= 0:\n            novos.append([x, ny])\n    estado[\"tiros\"] = novos\n    if removidos:\n        estado[\"aliens\"] = [a for i, a in enumerate(estado[\"aliens\"]) if i not in removidos]\n\ndef mover_invasores():\n    passo = 1 if (estado[\"turno\"] // 4) % 2 == 0 else -1\n    for alien in estado[\"aliens\"]:\n        alien[0] += passo\n        alien[0] = max(1, min(LARGURA - 2, alien[0]))\n    if estado[\"turno\"] % 8 == 0:\n        for alien in estado[\"aliens\"]:\n            alien[1] += 1\n\ndef comando(tecla):\n    tecla = str(tecla).lower()[:1]\n    if tecla == \"q\":\n        estado[\"ativo\"] = False\n        print(\"\\nJOGO ENCERRADO.\")\n        return\n    if not estado[\"ativo\"]:\n        print(\"O jogo terminou. Execute o arquivo novamente para reiniciar.\")\n        return\n    if tecla == \"a\":\n        estado[\"x\"] = max(1, estado[\"x\"] - 2)\n    elif tecla == \"d\":\n        estado[\"x\"] = min(LARGURA - 2, estado[\"x\"] + 2)\n    elif tecla == \"f\":\n        estado[\"tiros\"].append([estado[\"x\"], ALTURA - 3])\n    else:\n        print(\"Comando inválido. Use A, D, F ou Q.\")\n        return\n    mover_tiros()\n    mover_invasores()\n    estado[\"turno\"] += 1\n    if any(y >= ALTURA - 2 for _, y in estado[\"aliens\"]):\n        estado[\"ativo\"] = False\n        quadro()\n        print(\"\\nGAME OVER — os invasores chegaram!\")\n        return\n    if not estado[\"aliens\"]:\n        estado[\"ativo\"] = False\n        quadro()\n        print(f\"\\nVITÓRIA! Pontuação: {estado['score']}\")\n        return\n    quadro()\n\niniciar()\nprint(\"MicroConda: Space Invaders carregado.\")\nquadro()\n"};
 let project=load(),current="main.py",py=null,loading=null,hist=[],hi=-1;
-function load(){try{let x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&x.files)return x}catch(e){}return{files:{"main.py":DEFAULT}}}
-function saveProject(){localStorage.setItem(KEY,JSON.stringify(project))}
+function load(){
+  try{
+    const x=JSON.parse(localStorage.getItem(KEY)||"null");
+    if(x&&x.files&&typeof x.files==="object"&&!Array.isArray(x.files)){
+      const safe={};
+      for(const [n,v] of Object.entries(x.files)){
+        if(/^[^/\\]+\.py$/i.test(n)&&typeof v==="string")safe[n]=v;
+      }
+      if(Object.keys(safe).length)return{files:safe};
+    }
+  }catch(e){}
+  return{files:{"main.py":DEFAULT}};
+}
+let storageWarningShown=false;
+function saveProject(){
+  try{
+    localStorage.setItem(KEY,JSON.stringify(project));
+    return true;
+  }catch(e){
+    if(!storageWarningShown){
+      storageWarningShown=true;
+      write("Não foi possível salvar o projeto no navegador. O código continua editável, mas pode não persistir.","err");
+    }
+    return false;
+  }
+}
 function sync(){project.files[current]=editor.value;saveProject();syncLines()}
 function syncLines(){let n=Math.max(1,editor.value.split("\n").length);lines.textContent=Array.from({length:n},(_,i)=>i+1).join("\n")}
-function write(t,k=""){let e=document.createElement("div");e.className=k;e.textContent=String(t);out.appendChild(e);out.scrollTop=out.scrollHeight}
+const MAX_OUTPUT_ENTRIES=500;
+function write(t,k=""){
+  const e=document.createElement("div");
+  e.className=k;
+  e.textContent=String(t);
+  out.appendChild(e);
+  while(out.childElementCount>MAX_OUTPUT_ENTRIES)out.firstElementChild?.remove();
+  out.scrollTop=out.scrollHeight;
+}
 function stat(t,ready=false){status.textContent=t;dot.classList.toggle("ready",ready)}
 function renderFiles(){files.innerHTML="";Object.keys(project.files).sort().forEach(n=>{let e=document.createElement("div");e.className="file"+(n===current?" active":"");e.textContent="🐍 "+n;e.onclick=()=>open(n);files.appendChild(e)})}
 function renderDemos(){examples.innerHTML="";Object.keys(DEMOS).forEach(n=>{let e=document.createElement("div");e.className="example";e.textContent=n;e.onclick=()=>{let fn=n.replace(/^\d+ — /,"");if(!project.files[fn])project.files[fn]=DEMOS[n];open(fn)};examples.appendChild(e)})}
@@ -48,20 +77,57 @@ function open(n){if(!(n in project.files))project.files[n]="";current=n;name.tex
 async function init(){if(loading)return loading;loading=(async()=>{stat("Carregando Python…");py=await loadPyodide();py.setStdout({batched:s=>write(s)});py.setStderr({batched:s=>write(s,"err")});
 py.globals.set("install",async n=>{let p=String(n||"").trim();if(!/^[A-Za-z0-9._-]+$/.test(p))throw Error("Nome de pacote inválido.");write("Instalando: "+p,"info");await py.loadPackage(["micropip"]);await py.runPythonAsync("import micropip; await micropip.install("+JSON.stringify(p)+")");write("Instalado: "+p,"ok")});
 stat("Python pronto",true);write("MicroConda Studio pronto.","ok");write("Python "+py.runPython("import sys; sys.version.split()[0]")+" · WebAssembly","info");return py})().catch(e=>{loading=null;stat("Erro ao carregar Python");write(e.stack||e,"err");throw e});return loading}
-async function execute(code){if(!code.trim())return;sync();let engine=await init();write(">>> "+code,"info");try{let r=await engine.runPythonAsync(code);if(r!==undefined&&r!==null)write(typeof r==="string"?r:String(r))}catch(e){write(e.stack||String(e),"err")}}
+async function execute(code){
+  if(!code.trim())return;
+  sync();
+  write(">>> "+code,"info");
+  try{
+    const engine=await init();
+    const r=await engine.runPythonAsync(code);
+    if(r!==undefined&&r!==null)write(typeof r==="string"?r:String(r));
+  }catch(e){
+    write(e?.stack||String(e),"err");
+  }
+}
 function download(n,t){let a=document.createElement("a"),u=URL.createObjectURL(new Blob([t],{type:"text/plain;charset=utf-8"}));a.href=u;a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 $("run").onclick=()=>execute(editor.value);$("clear").onclick=()=>out.textContent="";
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e;$("install").hidden=false});$("install").onclick=async()=>{if(!deferredInstall)return;deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;$("install").hidden=true};window.addEventListener("appinstalled",()=>{$("install").hidden=true;write("MicroConda instalado como aplicativo.","ok")});if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+
 $("download").onclick=()=>{sync();download(current,editor.value)};
 $("export").onclick=()=>{sync();download("microconda-project.json",JSON.stringify(project,null,2));write("Projeto exportado.","ok")};
 $("reset").onclick=async()=>{py=null;loading=null;out.textContent="";await init()};
 $("new").onclick=()=>{let n=prompt("Nome do arquivo:","novo.py");if(!n)return;n=n.trim();if(!/^[-\\w. ]+\.py$/i.test(n))return alert("Use um nome terminado em .py");if(n in project.files)return alert("Arquivo já existe.");project.files[n]="";open(n)};
 editor.oninput=sync;editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
 editor.onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();let s=editor.selectionStart,en=editor.selectionEnd;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(en);editor.selectionStart=editor.selectionEnd=s+4;sync()}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();execute(editor.value)}};
-cmd.onkeydown=async e=>{if(e.key==="ArrowUp"){e.preventDefault();if(hist.length){hi=Math.max(0,hi-1);cmd.value=hist[hi]||""}return}if(e.key==="ArrowDown"){e.preventDefault();if(hist.length){hi=Math.min(hist.length,hi+1);cmd.value=hist[hi]||""}return}if(e.key!=="Enter")return;let v=cmd.value.trim();cmd.value="";if(!v)return;hist.push(v);hi=hist.length;
+cmd.onkeydown=async e=>{if(e.key==="ArrowUp"){e.preventDefault();if(hist.length){hi=Math.max(0,hi-1);cmd.value=hist[hi]||""}return}if(e.key==="ArrowDown"){e.preventDefault();if(hist.length){hi=Math.min(hist.length,hi+1);cmd.value=hist[hi]||""}return}if(e.key!=="Enter")return;let v=cmd.value.trim();cmd.value="";if(!v)return;
+hist.push(v);
+if(hist.length>100)hist.shift();
+hi=hist.length;
 if(v==="clear"){out.textContent="";return}if(v==="help"){write("Python no navegador. Comandos: help, clear, version, files, load(\"arquivo.py\").","info");return}if(v==="files"){write(Object.keys(project.files).sort().join("\n"),"info");return}
 let m=v.match(/^load\(["'](.+)["']\)$/);if(m){if(m[1] in project.files){open(m[1]);write("Arquivo carregado: "+m[1],"ok")}else write("Arquivo não encontrado: "+m[1],"err");return}
-if(v==="version"){try{await init();write(py.runPython("import sys; sys.version"),"info")}catch(e){}return}if(current==="Space Invaders ASCII.py" && /^[adfq]$/.test(v)){try{await init();await py.runPythonAsync("comando("+JSON.stringify(v)+")")}catch(e){write(e.stack||String(e),"err")}return}if(current==="Space Invaders ASCII.py" && (v==="restart"||v==="reiniciar")){try{await init();await py.runPythonAsync("iniciar(); quadro()")}catch(e){write(e.stack||String(e),"err")}return}await execute(v)};
-editor.value=project.files[current]||DEFAULT;renderFiles();renderDemos();syncLines();init();
+if(v==="version"){
+  try{
+    await init();
+    write(py.runPython("import sys; sys.version"),"info");
+  }catch(e){
+    write(e?.stack||String(e),"err");
+  }
+  return
+}if(current==="Space Invaders ASCII.py" && /^[adfq]$/.test(v)){try{await init();await py.runPythonAsync("comando("+JSON.stringify(v)+")")}catch(e){write(e.stack||String(e),"err")}return}if(current==="Space Invaders ASCII.py" && (v==="restart"||v==="reiniciar")){try{await init();await py.runPythonAsync("iniciar(); quadro()")}catch(e){write(e.stack||String(e),"err")}return}await execute(v)};
+editor.value=project.files[current]||DEFAULT;renderFiles();renderDemos();syncLines();
+async function cleanupLegacyPwa(){
+  if(!("serviceWorker" in navigator))return;
+  try{
+    const rs=await navigator.serviceWorker.getRegistrations();
+    await Promise.all(rs.map(r=>r.unregister()));
+    if("caches" in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.filter(k=>k.startsWith("microconda-shell-")).map(k=>caches.delete(k)));
+    }
+  }catch(e){
+    console.warn("Falha ao limpar recursos legados de PWA:",e);
+  }
+}
+cleanupLegacyPwa();
+init().catch(()=>{});
 })();
 </script></body></html>
