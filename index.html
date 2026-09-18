@@ -137,65 +137,27 @@ function closeGamePopup(){
 }
 openGameWindowBtn.onclick=()=>{
   if(gameRunning){
-    write("Abra a janela antes de iniciar o jogo; não é seguro trocar o canvas de um jogo em execução.","err");
+    write("Pare o jogo atual antes de abrir outra guia.","err");
     return;
   }
-  if(gamePopup&&!gamePopup.closed){gamePopup.focus();return;}
-  const win=window.open("","microconda-game","width=1100,height=800,resizable=yes,scrollbars=no");
-  if(!win){write("O navegador bloqueou a nova janela. Permita pop-ups para o MicroConda.","err");return;}
-  gamePopup=win;
-  const popupCanvas=win.document.createElement("canvas");
-  popupCanvas.width=gameCanvas.width;
-  popupCanvas.height=gameCanvas.height;
-  popupCanvas.className="game-popout";
-  popupCanvas.tabIndex=0;
-  win.document.title="MicroConda — Jogo";
-  win.document.head.innerHTML='<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MicroConda — Jogo</title><style>html,body{margin:0;width:100%;height:100%;background:#02050a;overflow:hidden}body{display:flex;align-items:center;justify-content:center}.game-popout{width:100vw;height:100vh;object-fit:contain;image-rendering:pixelated;background:#000;outline:none}</style>';
-  win.document.body.replaceChildren(popupCanvas);
-  const forwardKeyboard = (event) => {
-    if(!window.opener || window.opener.closed)return;
-    const forwarded = new KeyboardEvent(event.type, {
-      key:event.key, code:event.code, location:event.location,
-      ctrlKey:event.ctrlKey, shiftKey:event.shiftKey,
-      altKey:event.altKey, metaKey:event.metaKey,
-      repeat:event.repeat, bubbles:true, cancelable:true
-    });
-    window.opener.document.getElementById("gameCanvas")?.dispatchEvent(forwarded);
-    event.preventDefault();
-  };
-  const forwardPointer = (event) => {
-    if(!window.opener || window.opener.closed)return;
-    const target=window.opener.document.getElementById("gameCanvas");
-    if(!target)return;
-    const rect=target.getBoundingClientRect();
-    const popupRect=popupCanvas.getBoundingClientRect();
-    const nx=popupRect.width?Math.max(0,Math.min(1,(event.clientX-popupRect.left)/popupRect.width)):0;
-    const ny=popupRect.height?Math.max(0,Math.min(1,(event.clientY-popupRect.top)/popupRect.height)):0;
-    const x=nx*rect.width;
-    const y=ny*rect.height;
-    const forwarded = new MouseEvent(event.type, {
-      clientX:rect.left+x, clientY:rect.top+y,
-      button:event.button, buttons:event.buttons,
-      bubbles:true, cancelable:true
-    });
-    target.dispatchEvent(forwarded);
-    event.preventDefault();
-  };
-  const focusPopup=()=>{try{popupCanvas.focus({preventScroll:true})}catch(e){popupCanvas.focus()}};\n  popupCanvas.addEventListener("pointerdown",focusPopup);\n  popupCanvas.addEventListener("touchstart",focusPopup,{passive:true});\n  popupCanvas.addEventListener("click",focusPopup);
-  popupCanvas.addEventListener("keydown",forwardKeyboard);
-  popupCanvas.addEventListener("keyup",forwardKeyboard);
-  popupCanvas.addEventListener("mousedown",forwardPointer);
-  popupCanvas.addEventListener("mouseup",forwardPointer);
-  popupCanvas.addEventListener("mousemove",forwardPointer);
-  popupCanvas.addEventListener("wheel",forwardPointer,{passive:false});
-  win.addEventListener("beforeunload",()=>{
-    gamePopup=null;
-    gameTargetCanvas=gameCanvas;
-    if(gameRunning)stopGame();
-  });
-  gameTargetCanvas=popupCanvas;
-  popupCanvas.focus();
-  write("Janela do jogo preparada. Agora clique em ▶ Executar jogo.","ok");
+  const code=editor.value;
+  if(!code.trim()){
+    write("Não há código para executar.","err");
+    return;
+  }
+  try{
+    localStorage.setItem("microconda-pending-game",code);
+    const url=new URL(location.href);
+    url.searchParams.set("game","1");
+    const win=window.open(url.href,"_blank");
+    if(!win){
+      write("O navegador bloqueou a nova guia. Permita pop-ups para o MicroConda.","err");
+      return;
+    }
+    write("Nova guia do jogo aberta. O código atual será executado nela.","ok");
+  }catch(e){
+    write("Não foi possível abrir a guia do jogo: "+(e?.message||e),"err");
+  }
 };
 gameCanvas.onkeydown=e=>{if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault()};
 function renderFiles(){files.innerHTML="";Object.keys(project.files).sort().forEach(n=>{let e=document.createElement("div");e.className="file"+(n===current?" active":"");e.textContent="🐍 "+n;e.onclick=()=>open(n);files.appendChild(e)})}
@@ -293,6 +255,24 @@ if(v==="version"){
   return
 }if(current==="Space Invaders ASCII.py" && /^[adfq]$/.test(v)){try{await init();await py.runPythonAsync("comando("+JSON.stringify(v)+")")}catch(e){write(e.stack||String(e),"err")}return}if(current==="Space Invaders ASCII.py" && (v==="restart"||v==="reiniciar")){try{await init();await py.runPythonAsync("iniciar(); quadro()")}catch(e){write(e.stack||String(e),"err")}return}await execute(v)};
 editor.value=project.files[current]||DEFAULT;renderFiles();syncLines();
+const gameOnly=new URLSearchParams(location.search).get("game")==="1";
+if(gameOnly){
+  document.body.classList.add("game-only");
+  document.querySelector(".top")?.remove();
+  document.querySelector(".workspace")?.style.setProperty("display","flex");
+  document.querySelector(".workspace")?.style.setProperty("padding","0");
+  document.querySelector(".workspace")?.style.setProperty("gap","0");
+  document.querySelector(".workspace>aside")?.remove();
+  document.querySelector(".editor-panel")?.remove();
+  const panel=document.querySelector(".term-panel");
+  if(panel){
+    panel.style.width="100%";
+    panel.style.height="100%";
+    panel.style.border="0";
+    panel.style.borderRadius="0";
+  }
+  showView("game");
+}
 async function cleanupLegacyPwa(){
   if(!("serviceWorker" in navigator))return;
   try{
@@ -314,6 +294,18 @@ async function cleanupLegacyPwa(){
   }
 }
 cleanupLegacyPwa();
-init().catch(()=>{});
+init().then(async()=>{
+  if(gameOnly){
+    const pending=localStorage.getItem("microconda-pending-game");
+    if(pending){
+      localStorage.removeItem("microconda-pending-game");
+      editor.value=pending;
+      syncLines();
+      await executeGame(pending);
+    }else{
+      gameStatus.textContent="Nenhum jogo aguardando execução";
+    }
+  }
+}).catch(()=>{});
 })();
 </script></body></html>
