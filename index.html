@@ -86,13 +86,13 @@ function buildDocument(){
   sync();
   let raw=current.toLowerCase().endsWith(".html")?editor.value.trim():String(project.files["index.html"]||"").trim();
   if(!raw)return "<!doctype html><html><head><meta charset=\"utf-8\"></head><body></body></html>";
-  if(!/<html[\\s>]/i.test(raw))raw=raw.includes("<style")||raw.includes("<script")
+  if(!/<html[\s>]/i.test(raw))raw=raw.includes("<style")||raw.includes("<script")
     ? "<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no\"></head><body>"+raw+"</body></html>"
     : "<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no\"></head><body>"+raw+"</body></html>";
-  const css=Object.entries(project.files).filter(([n])=>/\\.css$/i.test(n)).map(([,v])=>v.trim()).filter(Boolean).join("\\n");
+  const css=Object.entries(project.files).filter(([n])=>/\.css$/i.test(n)).map(([,v])=>v.trim()).filter(Boolean).join("\\n");
   const js=Object.entries(project.files).filter(([n])=>/\\.js$/i.test(n)).map(([,v])=>v.trim()).filter(Boolean).join("\\n");
   if(css)raw=raw.includes("</head>")?raw.replace("</head>","<style>\\n"+css+"\\n</style></head>"):"<style>\\n"+css+"\\n</style>"+raw;
-  if(js)raw=raw.includes("</body>")?raw.replace("</body>","<script>\\n"+js.replace(/<\\/script/gi,"<\\\\/script")+"\\n<\/script></body>"):raw+"<script>\\n"+js.replace(/<\\/script/gi,"<\\\\/script")+"\\n<\/script>";
+  if(js)raw=raw.includes("</body>")?raw.replace("</body>","<script>\\n"+js.replace(/<\/script/gi,"<\\\\/script")+"\\n<\/script></body>"):raw+"<script>\\n"+js.replace(/<\/script/gi,"<\\\\/script")+"\\n<\/script>";
   return raw;
 }
 function runPreview(){
@@ -108,15 +108,15 @@ function runPreview(){
   iframe.onerror=()=>{gameStatus.textContent="Erro no jogo";write("Não foi possível carregar a pré-visualização.","err")};
 }
 function stopGame(){if(!gameRunning)return;gameRunning=false;gameStatus.textContent="Jogo parado";const iframe=previewFrame;if(iframe){iframe.srcdoc="<!doctype html><html><body style='margin:0;background:#000'></body></html>"}}
-function sanitizeName(n){return n.trim().replace(/[^a-zA-Z0-9À-ÿ _-]+/g,"").replace(/\\s+/g,"-").replace(/-+/g,"-")||"meu-jogo"}
+function sanitizeName(n){return n.trim().replace(/[^a-zA-Z0-9À-ÿ _-]+/g,"").replace(/\s+/g,"-").replace(/-+/g,"-")||"meu-jogo"}
 function exportHtml(){
   sync();
   let doc=buildDocument();
-  const css=Object.entries(project.files).filter(([n])=>/\\.css$/i.test(n)).map(([,v])=>v).join("\\n");
+  const css=Object.entries(project.files).filter(([n])=>/\.css$/i.test(n)).map(([,v])=>v).join("\\n");
   const js=Object.entries(project.files).filter(([n])=>/\\.js$/i.test(n)).map(([,v])=>v).join("\\n");
   if(css)doc=doc.replace("</head>","<style>\\n"+css+"\\n</style></head>");
-  if(js)doc=doc.replace("</body>","<script>\\n"+js.replace(/<\\/script/gi,"<\\\\/script")+"\\n<\/script></body>");
-  const base=sanitizeName(name.textContent.replace(/\\.html$/i,""));
+  if(js)doc=doc.replace("</body>","<script>\\n"+js.replace(/<\/script/gi,"<\\\\/script")+"\\n<\/script></body>");
+  const base=sanitizeName(name.textContent.replace(/\.html$/i,""));
   const blob=new Blob([doc],{type:"text/html;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=base+".html";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);write("Jogo exportado como HTML único: "+base+".html","ok")
 }
 function newFile(){const n=prompt("Nome do arquivo:","script.js");if(!n)return;const name2=n.trim();if(!/^[^/\\\\]+\\.(html|css|js)$/i.test(name2))return alert("Use .html, .css ou .js");if(project.files[name2]!=null)return alert("Arquivo já existe.");project.files[name2]="";open(name2)}
