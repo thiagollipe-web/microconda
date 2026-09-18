@@ -98,7 +98,6 @@ No celular, abra o endereço diretamente no navegador. A interface se adapta ao 
 ```text
 microconda/
 ├── index.html
-├── sw.js              # limpeza de instalações/cache PWA legados
 ├── icons/
 │   └── microconda.svg
 ├── docs/
