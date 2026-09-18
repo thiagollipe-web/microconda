@@ -28,6 +28,9 @@ jobs:
           if 'download=" + base + ".html' not in html and 'a.download=base+".html"' not in html: raise SystemExit("Single HTML export missing")
           if "srcdoc" not in html: raise SystemExit("Preview iframe missing")
           if "pointer" not in html: raise SystemExit("Pointer/touch support missing")
+          if len(re.findall(r"</script>", html, flags=re.I)) != 1: raise SystemExit("Unsafe embedded script terminator detected")
+          if "\\`" in html: raise SystemExit("Escaped template literal delimiter detected")
+          if "gradient(" in html.lower(): raise SystemExit("Lite startup should not use gradients")
           print("Architecture checks: OK")
           PY
 
