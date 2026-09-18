@@ -85,14 +85,12 @@ function open(n){current=n;name.textContent=n;editor.value=project.files[n]||"";
 function buildDocument(){
   sync();
   let raw=current.toLowerCase().endsWith(".html")?editor.value.trim():String(project.files["index.html"]||"").trim();
-  if(!raw)return "<!doctype html><html><head><meta charset=\"utf-8\"></head><body></body></html>";
-  if(!/<html[\s>]/i.test(raw))raw=raw.includes("<style")||raw.includes("<script")
-    ? "<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no\"></head><body>"+raw+"</body></html>"
-    : "<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no\"></head><body>"+raw+"</body></html>";
+  if(!raw)raw="<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no\"></head><body></body></html>";
+  if(!/<html[\s>]/i.test(raw))raw="<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no\"></head><body>"+raw+"</body></html>";
   const css=Object.entries(project.files).filter(([n])=>/\.css$/i.test(n)).map(([,v])=>v.trim()).filter(Boolean).join("\\n");
-  const js=Object.entries(project.files).filter(([n])=>/\\.js$/i.test(n)).map(([,v])=>v.trim()).filter(Boolean).join("\\n");
-  if(css)raw=raw.includes("</head>")?raw.replace("</head>","<style>\\n"+css+"\\n</style></head>"):"<style>\\n"+css+"\\n</style>"+raw;
-  if(js)raw=raw.includes("</body>")?raw.replace("</body>","<script>\\n"+js.replace(/<\/script/gi,"<\\\\/script")+"\\n<\/script></body>"):raw+"<script>\\n"+js.replace(/<\/script/gi,"<\\\\/script")+"\\n<\/script>";
+  const js=Object.entries(project.files).filter(([n])=>/\.js$/i.test(n)).map(([,v])=>v.trim()).filter(Boolean).join("\\n");
+  if(css&&raw.includes("</head>"))raw=raw.replace("</head>","<style>\\n"+css+"\\n</style></head>");
+  if(js&&raw.includes("</body>"))raw=raw.replace("</body>","<script>\\n"+js.replace(/<\\/script/gi,"<\\\\/script")+"\\n<\/script></body>");
   return raw;
 }
 function runPreview(){
