@@ -7,6 +7,12 @@ page.on("pageerror", e => errors.push("pageerror: " + e.message));
 page.on("console", m => { if(m.type() === "error") errors.push("console: " + m.text()); });
 
 await page.goto("http://127.0.0.1:4173/", {waitUntil:"networkidle", timeout:30000});
+const manifest=await page.locator('link[rel="manifest"]').getAttribute("href");
+if(manifest!=="./manifest.webmanifest") throw new Error("PWA manifest link missing");
+const icon=await page.locator('link[rel="icon"]').getAttribute("href");
+if(icon!=="./icons/microconda.svg") throw new Error("PWA icon link missing");
+const swReady=await page.evaluate(async()=>("serviceWorker" in navigator)?!!(await navigator.serviceWorker.ready):false);
+if(!swReady) throw new Error("Service worker did not become ready");
 await page.waitForFunction(() => document.querySelector("#status")?.textContent.includes("Studio pronto"), {timeout:30000});
 
 const editor = page.locator("#editor");
@@ -20,8 +26,10 @@ await frame.locator("canvas#game").waitFor({state:"visible",timeout:10000});
 await page.locator("#stopGame").click();
 await page.waitForFunction(() => document.querySelector("#gameStatus")?.textContent.includes("Jogo parado"), {timeout:5000});
 
-await page.locator("#download").click();
-await page.waitForTimeout(300);
+const downloadPromise=page.waitForEvent("download",{timeout:10000});
+await page.locator("#export").click();
+const download=await downloadPromise;
+if(!download.suggestedFilename().endsWith(".html")) throw new Error("Export did not produce an HTML file");
 if(errors.length) throw new Error(errors.join("\n"));
 console.log("Browser smoke: mobile editor, preview, touch-capable viewport and export flow OK");
 await browser.close();
