@@ -117,8 +117,59 @@ function exportHtml(){
   const base=sanitizeName(name.textContent.replace(/\.html$/i,""));
   const blob=new Blob([doc],{type:"text/html;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=base+".html";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);write("Jogo exportado como HTML único: "+base+".html","ok")
 }
-function newFile(){const n=prompt("Nome do arquivo:","script.js");if(!n)return;const name2=n.trim();if(!/^[^/\\\\]+\\.(html|css|js)$/i.test(name2))return alert("Use .html, .css ou .js");if(project.files[name2]!=null)return alert("Arquivo já existe.");project.files[name2]="";open(name2)}
-$("run").onclick=runPreview;$("clear").onclick=()=>out.textContent="";$("download").onclick=exportHtml;$("export").onclick=exportHtml;$("reset").onclick=()=>{stopGame();project={files:{"index.html":DEFAULT}};open("index.html");write("Projeto reiniciado.","ok")};
+function hasChanges(){
+  const currentValue=editor.value;
+  const savedValue=String(project.files[current]||"");
+  return currentValue!==savedValue;
+}
+function downloadCurrentFile(){
+  const content=editor.value;
+  const blob=new Blob([content],{type:"text/plain;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=current;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  project.files[current]=content;
+  markFileSaved(current);
+  queueSave();
+  write("Arquivo salvo: "+current,"ok");
+}
+function markFileSaved(fileName){
+  let saved=JSON.parse(localStorage.getItem(KEY+"_saved-files")||"{}");
+  saved[fileName]=true;
+  localStorage.setItem(KEY+"_saved-files",JSON.stringify(saved));
+}
+function isFileAlreadySaved(fileName){
+  try{
+    const saved=JSON.parse(localStorage.getItem(KEY+"_saved-files")||"{}");
+    return !!saved[fileName];
+  }catch(e){return false}
+}
+function newFile(){
+  sync(false);
+  if(hasChanges()){
+    const shouldSave=confirm("Você deseja salvar o arquivo atual antes de criar um novo arquivo?");
+    if(shouldSave)downloadCurrentFile();
+  }
+  const n=prompt("Nome do arquivo:","script.js");
+  if(!n)return;
+  const name2=n.trim();
+  if(!/^[^/\\]+\\.(html|css|js)$/i.test(name2))return alert("Use .html, .css ou .js");
+  if(project.files[name2]!=null)return alert("Arquivo já existe.");
+  project.files[name2]="";
+  current=name2;
+  name.textContent=name2;
+  editor.value="";
+  syncLines();
+  renderFiles();
+  queueSave();
+  editor.focus();
+}
+$("run").onclick=runPreview;$("clear").onclick=()=>out.textContent="";$("download").onclick=downloadCurrentFile;$("export").onclick=exportHtml;$("reset").onclick=()=>{stopGame();project={files:{"index.html":DEFAULT}};open("index.html");write("Projeto reiniciado.","ok")};
 $("new").onclick=newFile;gameBtn.onclick=runPreview;stopGameBtn.onclick=stopGame;terminalTab.onclick=()=>showView("terminal");gameTab.onclick=()=>showView("game");openGameWindowBtn.onclick=()=>{sync();const url=new URL(location.href);url.searchParams.set("game","1");const w=window.open(url.href,"_blank","noopener,noreferrer");if(!w)write("O navegador bloqueou a nova janela. Permita pop-ups para abrir o jogo.","err")};editor.oninput=()=>sync(false);editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
 editor.onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();const s=editor.selectionStart,en=editor.selectionEnd;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(en);editor.selectionStart=editor.selectionEnd=s+4;sync()}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();runPreview()}};
 cmd.onkeydown=async e=>{if(e.key==="ArrowUp"){e.preventDefault();if(hist.length){hi=Math.max(0,hi-1);cmd.value=hist[hi]||""}return}if(e.key==="ArrowDown"){e.preventDefault();if(hist.length){hi=Math.min(hist.length,hi+1);cmd.value=hist[hi]||""}return}if(e.key!=="Enter")return;const v=cmd.value.trim();cmd.value="";if(!v)return;hist.push(v);hi=hist.length;if(v==="clear"){out.textContent="";return}if(v==="files"){write(Object.keys(project.files).sort().join("\n"),"info");return}if(v==="salvar"){saveProject();write("Projeto salvo.","ok");return}if(v==="help"){write("Console JavaScript. Use files, clear, salvar ou escreva JavaScript.","info");return}try{const r=Function(v)();if(r!==undefined)write(r)}catch(e){write(e?.stack||String(e),"err")}};
