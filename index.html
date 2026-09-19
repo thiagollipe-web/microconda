@@ -117,44 +117,63 @@ function exportHtml(){
   const base=sanitizeName(name.textContent.replace(/\.html$/i,""));
   const blob=new Blob([doc],{type:"text/html;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=base+".html";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);write("Jogo exportado como HTML único: "+base+".html","ok")
 }
+function getSavedFileMap(){
+  try{return JSON.parse(localStorage.getItem(KEY+"_saved-files")||"{}")}
+  catch(e){return {}}
+}
+function getFileSignature(content){
+  let hash=2166136261;
+  for(let i=0;i<content.length;i++){hash^=content.charCodeAt(i);hash=Math.imul(hash,16777619)}
+  return (hash>>>0).toString(16);
+}
 function hasChanges(){
-  const currentValue=editor.value;
-  const savedValue=String(project.files[current]||"");
-  return currentValue!==savedValue;
-}
-function downloadCurrentFile(){
   const content=editor.value;
-  const blob=new Blob([content],{type:"text/plain;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=current;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-  project.files[current]=content;
-  markFileSaved(current);
-  queueSave();
-  write("Arquivo salvo: "+current,"ok");
+  const saved=getSavedFileMap();
+  return !saved[current]||saved[current]!==getFileSignature(content);
 }
-function markFileSaved(fileName){
-  let saved=JSON.parse(localStorage.getItem(KEY+"_saved-files")||"{}");
-  saved[fileName]=true;
-  localStorage.setItem(KEY+"_saved-files",JSON.stringify(saved));
-}
-function isFileAlreadySaved(fileName){
+async function downloadCurrentFile(){
+  const content=editor.value;
   try{
-    const saved=JSON.parse(localStorage.getItem(KEY+"_saved-files")||"{}");
-    return !!saved[fileName];
-  }catch(e){return false}
+    if("showSaveFilePicker" in window){
+      const handle=await window.showSaveFilePicker({
+        suggestedName:current,
+        types:[{description:"Arquivo do projeto",accept:{"text/plain":["."+current.split(".").pop()]}}]
+      });
+      const writable=await handle.createWritable();
+      await writable.write(content);
+      await writable.close();
+    }else{
+      const blob=new Blob([content],{type:"text/plain;charset=utf-8"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url;a.download=current;
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }
+    project.files[current]=content;
+    markFileSaved(current,content);
+    queueSave();
+    write("Arquivo salvo: "+current,"ok");
+    return true;
+  }catch(e){
+    if(e?.name==="AbortError")write("Salvamento cancelado.","info");
+    else write("Não foi possível salvar o arquivo: "+(e?.message||e),"err");
+    return false;
+  }
+}
+function markFileSaved(fileName,content){
+  const saved=getSavedFileMap();
+  saved[fileName]=getFileSignature(content);
+  try{localStorage.setItem(KEY+"_saved-files",JSON.stringify(saved))}catch(e){}
 }
 function newFile(){
-  sync(false);
-  if(hasChanges()){
+  const changed=hasChanges();
+  if(changed){
     const shouldSave=confirm("Você deseja salvar o arquivo atual antes de criar um novo arquivo?");
     if(shouldSave)downloadCurrentFile();
   }
+  project.files[current]=editor.value;
+  queueSave();
   const n=prompt("Nome do arquivo:","script.js");
   if(!n)return;
   const name2=n.trim();
