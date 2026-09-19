@@ -1,4 +1,4 @@
-const CACHE="microconda-lite-v2";
+const CACHE="microconda-lite-v3";
 const ASSETS=["./","./index.html","./manifest.webmanifest","./icons/microconda.svg"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
