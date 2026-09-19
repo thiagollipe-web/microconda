@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#070b14">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/microconda.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/microconda.svg">
 <title>MicroConda Game Studio</title>
 <style>
 :root{--bg:#070b14;--p:#0d1424;--p2:#111a2d;--line:#22304a;--tx:#e8eef8;--muted:#8ea0ba;--a:#62d7ff;--ok:#6ee7a2;--bad:#ff7182}
@@ -192,7 +195,8 @@ $("run").onclick=runPreview;$("clear").onclick=()=>out.textContent="";$("downloa
 $("new").onclick=newFile;gameBtn.onclick=runPreview;stopGameBtn.onclick=stopGame;terminalTab.onclick=()=>showView("terminal");gameTab.onclick=()=>showView("game");openGameWindowBtn.onclick=()=>{sync();const url=new URL(location.href);url.searchParams.set("game","1");const w=window.open(url.href,"_blank","noopener,noreferrer");if(!w)write("O navegador bloqueou a nova janela. Permita pop-ups para abrir o jogo.","err")};editor.oninput=()=>sync(false);editor.onscroll=()=>lines.scrollTop=editor.scrollTop;
 editor.onkeydown=e=>{if(e.key==="Tab"){e.preventDefault();const s=editor.selectionStart,en=editor.selectionEnd;editor.value=editor.value.slice(0,s)+"    "+editor.value.slice(en);editor.selectionStart=editor.selectionEnd=s+4;sync()}if(e.ctrlKey&&e.key==="Enter"){e.preventDefault();runPreview()}};
 cmd.onkeydown=async e=>{if(e.key==="ArrowUp"){e.preventDefault();if(hist.length){hi=Math.max(0,hi-1);cmd.value=hist[hi]||""}return}if(e.key==="ArrowDown"){e.preventDefault();if(hist.length){hi=Math.min(hist.length,hi+1);cmd.value=hist[hi]||""}return}if(e.key!=="Enter")return;const v=cmd.value.trim();cmd.value="";if(!v)return;hist.push(v);hi=hist.length;if(v==="clear"){out.textContent="";return}if(v==="files"){write(Object.keys(project.files).sort().join("\n"),"info");return}if(v==="salvar"){saveProject();write("Projeto salvo.","ok");return}if(v==="help"){write("Console JavaScript. Use files, clear, salvar ou escreva JavaScript.","info");return}try{const r=Function(v)();if(r!==undefined)write(r)}catch(e){write(e?.stack||String(e),"err")}};
-editor.value=project.files[current]||DEFAULT;renderFiles();syncLines();stat("Studio pronto",true);window.addEventListener("pagehide",flushSave,{once:true});write("MicroConda Game Studio pronto.","ok");
+editor.value=project.files[current]||DEFAULT;renderFiles();syncLines();stat("Studio pronto",true);window.addEventListener("pagehide",flushSave,{once:true});
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));write("MicroConda Game Studio pronto.","ok");
 if(location.search.includes("game=1")){document.querySelector(".top")?.remove();document.querySelector(".workspace>aside")?.remove();document.querySelector(".editor-panel")?.remove();document.querySelector(".workspace")?.style.setProperty("display","flex");document.querySelector(".workspace")?.style.setProperty("padding","0");const p=document.querySelector(".term-panel");p.style.width="100%";p.style.height="100%";showView("game");runPreview()}
 })();
 </script></body></html>
